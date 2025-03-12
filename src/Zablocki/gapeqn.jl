@@ -10,7 +10,7 @@ function integrand_m(T, μ, m, ω, param::Parameters)
 end
 
 function integrand_μ(T, μ, m, ω, param::Parameters)
-    return p -> 4 * 6 * param.Gv * (p^2 / 2π^2) * m *
+    return p -> 4 * 6 * param.Gv * (p^2 / 2π^2) *
                 (numberF(T, μ, En(p, m) - ω) - numberF(T, -μ, En(p, m) + ω))
 end
 
@@ -41,7 +41,7 @@ function massgap(T, μ, param::Parameters)
     return nlsolve(gapeqns(T, μ, param), [0.3, 0.01])
 end
 
-function massgap(trange::AbstractRange, μ, param::Parameters; initial_guess=[0.01, 0.01])
+function massgap(trange::AbstractRange, μ, param::Parameters; initial_guess=[0.3, 0.01])
     result_m = zeros(length(trange))
     result_ω = zeros(length(trange))
     sol = initial_guess

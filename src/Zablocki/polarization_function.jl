@@ -8,7 +8,7 @@ function imagpart_meson_q0(T, mu, ω, m, NM, param::Parameters; Nc=3, Nf=2)
     if ω^2 < 4 * m^2 || ω^2 > 4 * (param.Λ^2 + m^2)
         return 0.0
     end
-    factor = Nc * Nf / 2π
+    factor = Nc / 2π
     pauli_term = 1 - numberF(T, mu, ω / 2) - numberF(T, -mu, ω / 2)
     return factor * ω^2 * ((1 - (4 * m^2 / ω^2))^NM) * pauli_term
 end
