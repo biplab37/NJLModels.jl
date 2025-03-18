@@ -36,7 +36,7 @@ function JM(T, mu, Ep_plus, Ep_minus)
 end
 
 JM_plus(T, mu, Ep_plus, Ep_minus) = JM(T, mu, Ep_plus, Ep_minus)
-JM_plus(T, mu, Ep_plus, Ep_minus) = JM(T, -mu, Ep_plus, Ep_minus)
+JM_minus(T, mu, Ep_plus, Ep_minus) = JM(T, -mu, Ep_plus, Ep_minus)
 
 function JM_Landau(T, mu, Ep_plus, Ep_minus)
     NM(x) = numberF(T, mu, x)
