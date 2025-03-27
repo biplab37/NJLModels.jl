@@ -9,5 +9,7 @@ include("gapeqn.jl")
 include("polarization_function.jl")
 include("finite_momentum.jl")
 include("mott_momenta.jl")
+include("mean_field.jl")
+include("fluctuations.jl")
 
 end
