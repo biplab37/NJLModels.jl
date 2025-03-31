@@ -1,5 +1,5 @@
-function integrate(func, a, b)
-    return quadgk(func, a, b, rtol=1e-3, maxevals=1e4)[1]
+function integrate(func, a, b; rtol=1e-3, maxevals=1e4)
+    return quadgk(func, a, b, rtol=rtol, maxevals=maxevals)[1]
 end
 
 function fzero(f, guess)
