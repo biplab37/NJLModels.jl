@@ -1,6 +1,7 @@
 # This file contains code to calculate the effect on fluctuation pressure due to momentum dependence of phase shift.
 
 function integrand_pressure(T, mu, ω, q, param)
+    #TODO: Check is mu dependence enters the expression like that?
     return 3 * phase_shift_pi_q(T, mu, ω, q, param) * q^2 * (1 / (exp((ω - mu) / T) - 1.0) + 1 / (exp((ω + mu) / T) - 1)) / (4 * π^3)
 end
 
@@ -19,6 +20,7 @@ function pressure_fluctuation(trange::AbstractArray, mu, param)
     return pres
 end
 
+## Boosted approximation
 function phase_zero(T, mu, ω, q, param)
     if ω <= q
         return 0.0
