@@ -10,3 +10,17 @@ function fzero(f, guess)
         return 0.0
     end
 end
+
+"""
+
+    realpart_kramers_kronig_q(imagpart::Function, ω, q, cutoff)
+
+This function returns the real part from imaginary part of a function f
+using the Kramers Kronig relation. Note that the imaginary part have to
+a function of two variables ω and q. Also the function only returns the
+ω, q dependent part.
+"""
+function realpart_kramers_kronig_q(imagpart::Function, ω, q, cutoff)
+    integrand(ν) = 2 * ν * (imagpart(ν, q) * PrincipalValue(ν^2 - ω^2) - imagpart(ν, 0.0) * PrincipalValue(ν^2)) / π
+    return integrate(integrand, 0.0, cutoff)
+end
