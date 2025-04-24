@@ -17,7 +17,7 @@ function imagpart_meson_q(ω, T, mu, q, gap, Nm, param::Parameters)
     Ep_plus = 0.5 * (ω + disc)
     Ep_minus = 0.5 * (ω - disc)
 
-    factor = 3 * 2 * (s - (4 * m^2 * Nm)) / (4 * π * q)
+    factor = 3 * 2 * (s - (4 * m^2 * Nm)) / (8 * π * q)
 
     if s > 4 * m^2
         if ω > 0
@@ -55,6 +55,16 @@ function realpart_meson_q(ω, T, mu, q, gap, Nm, param)
         return 2 * ν * (impart(ν, q) * PrincipalValue(ν^2 - ω^2) - impart(ν, 0.0) * PrincipalValue(ν^2)) / π
     end
     return Π0_meson(T, mu + gap[2], m, Nm + 1 / 2, param) - integrate(integrand, 0.0, cutoff)
+end
+
+function fullrealpart_meson_q(ω, T, mu, q, gap, Nm, param)
+    m = gap[1]
+    impart(x, y) = imagpart_meson_q(x, T, mu, y, gap, Nm, param)
+    cutoff = 2 * sqrt(param.Λ^2 + m^2 + q^2 / 4)
+    function integrand(ν)
+        return 2 * ν * impart(ν, q) * PrincipalValue(ν^2 - ω^2) / π
+    end
+    return 1 / (2 * param.Gs) - integrate(integrand, 0.0, cutoff)
 end
 
 function phase_shift_meson_q(T, mu, ω, q, Nm, param::Parameters)

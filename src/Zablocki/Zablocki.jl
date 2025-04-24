@@ -1,6 +1,6 @@
 module Zablocki
 
-using UsefulFunctions, NLsolve, QuadGK
+using UsefulFunctions, NLsolve, QuadGK, Cubature
 
 include("../custom_types.jl")
 include("custom_types_specific.jl")
