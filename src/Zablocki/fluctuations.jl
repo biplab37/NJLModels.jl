@@ -4,6 +4,15 @@ function integrand_pressure_pi(T, mu, ω, q, param)
     return 3 * phase_shift_pi_q(T, mu, ω, q, param) * q^2 * numberB(T, 0.0, ω) / (2 * π^3)
 end
 
+function generalized_beth(theta)
+    return theta - (sin(2*theta)/2)
+end
+
+function integrand_pressure_pi_generalized(T, mu, ω, q, param)
+    phi = phase_shift_pi_q(T, mu, ω, q, param)
+    return 3 * generalized_beth(phi) * q^2 * numberB(T, 0.0, ω) / (2 * π^3)
+end
+
 function pressure_fluctuation_pi(T, mu, param; rtol=1e-2, LD=1.0)
     integrand(x) = integrand_pressure_pi(T, mu, x[1], x[2], param)
     return integrate(integrand, [0.0, 0.0], [5 * param.Λ, LD * param.Λ], rtol=rtol)
@@ -15,6 +24,22 @@ function pressure_fluctuation_pi_LD(T, mu, param; rtol=1e-2, LD=1.0)
             return 0.0
         end
         return integrand_pressure_pi(T, mu, ω, q, param)
+    end
+
+    return integrate(x -> integrand(x[1], x[2]), [0.0, 0.0], [LD * param.Λ, LD * param.Λ])
+end
+
+function pressure_fluctuation_pi_generalized(T, mu, param; rtol=1e-2, LD=1.0)
+    integrand(x) = integrand_pressure_pi_generalized(T, mu, x[1], x[2], param)
+    return integrate(integrand, [0.0, 0.0], [5 * param.Λ, LD * param.Λ], rtol=rtol)
+end
+
+function pressure_fluctuation_pi_LD_generalized(T, mu, param; rtol=1e-2, LD=1.0)
+    function integrand(ω, q)
+        if ω > q
+            return 0.0
+        end
+        return integrand_pressure_pi_generalized(T, mu, ω, q, param)
     end
 
     return integrate(x -> integrand(x[1], x[2]), [0.0, 0.0], [LD * param.Λ, LD * param.Λ])
@@ -35,6 +60,27 @@ function pressure_fluctuation_sigma_LD(T, mu, param; rtol=1e-2, LD=1.0)
             return 0.0
         end
         return integrand_pressure_sigma(T, mu, ω, q, param)
+    end
+
+    return integrate(x -> integrand(x[1], x[2]), [0.0, 0.0], [LD * param.Λ, LD * param.Λ])
+end
+
+function integrand_pressure_sigma_generalized(T, mu, ω, q, param)
+    phi = phase_shift_sigma_q(T, mu, ω, q, param)
+    return generalized_beth(phi) * q^2 * numberB(T, 0.0, ω) / (2 * π^3)
+end
+
+function pressure_fluctuation_sigma_generalized(T, mu, param; rtol=1e-2, LD=1.0)
+    integrand(x) = integrand_pressure_sigma_generalized(T, mu, x[1], x[2], param)
+    return integrate(integrand, [0.0, 0.0], [5 * param.Λ, LD * param.Λ], rtol=rtol)
+end
+
+function pressure_fluctuation_sigma_LD_generalized(T, mu, param; rtol=1e-2, LD=1.0)
+    function integrand(ω, q)
+        if ω > q
+            return 0.0
+        end
+        return integrand_pressure_sigma_generalized(T, mu, ω, q, param)
     end
 
     return integrate(x -> integrand(x[1], x[2]), [0.0, 0.0], [LD * param.Λ, LD * param.Λ])
