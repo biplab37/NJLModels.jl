@@ -19,7 +19,7 @@ function J_D_Landau(sign, T, mu, ω, q, m)
 end
 
 function imagpart_D_normal_q0(T, mu, ω, m, param)
-    factor = (3 - 1) * 2 / (2π)
+    factor = (3 - 1) * 2 / (8π)
     positive_term, negative_term = 0.0, 0.0
     if ω * ((ω / 4) + mu) > m^2 - mu^2
         positive_term = (ω + 2mu)^2 * sqrt(1 - 4 * m^2 / (ω + 2mu)^2)
@@ -40,7 +40,7 @@ function imagpart_D_normal(T, mu, ω, q, m, param)
         return imagpart_D_normal_q0(T, mu, ω, m, param)
     end
 
-    factor = 8 / (4 * π * q)
+    factor = 2 / (4 * π * q)
 
     # postive branch
     sp = s_D(ω, q, mu, +1)
@@ -68,7 +68,7 @@ function imagpart_D_normal(T, mu, ω, q, m, param)
 end
 
 function Π0_D(T, mu, m, param)
-    factor = (3 - 1) * 2 / (π^2)
+    factor = (3 - 1) * 2 / (2 * π^2)
     function integrand_pi0(ep)
         return sqrt(ep^2 - m^2) * ep * (((1 - 2 * numberF(T, -mu, ep)) * PrincipalValue(ep + mu)) + (1 - 2 * numberF(T, mu, ep)) * PrincipalValue(ep - mu))
     end

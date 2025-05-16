@@ -29,16 +29,15 @@ end
 function pressure_fluctuation(integrand_func::Function, T, mu, param; rtol=1e-2, LD=1.0)
     integrand(x) = integrand_func(T, mu, x[1], x[2], param)
 
-    return integrate(integrand, [0.0, 0.0], [5 * param.Λ, LD * param.Λ], rtol=rtol)
+    return integrate(integrand, [0.01, 0.01], [5 * param.Λ, LD * param.Λ], rtol=rtol)
 end
 
 # Pseudo-scalar
-phase_shift_pi_LD(T, mu, ω, q, param) = phase_shift_LD(phase_shift_pi_q, T, mu, ω, q, param)
 integrand_pressure_pi(T, mu, ω, q, param) = integrand_pressure(phase_shift_pi_q, T, mu, ω, q, 3, param)
-integrand_pressure_pi_LD(T, mu, ω, q, param) = integrand_pressure(phase_shift_pi_LD, T, mu, ω, q, 3, param)
+integrand_pressure_pi_LD(T, mu, ω, q, param) = (ω >= q) ? 0.0 : integrand_pressure(phase_shift_pi_q, T, mu, ω, q, 3, param)
 
 integrand_pressure_pi_generalized(T, mu, ω, q, param) = integrand_pressure_generalized(phase_shift_pi_q, T, mu, ω, q, 3, param)
-integrand_pressure_pi_generalized_LD(T, mu, ω, q, param) = integrand_pressure_generalized(phase_shift_pi_LD, T, mu, ω, q, 3, param)
+integrand_pressure_pi_generalized_LD(T, mu, ω, q, param) = (ω >= q) ? 0.0 : integrand_pressure_generalized(phase_shift_pi_q, T, mu, ω, q, 3, param)
 
 pressure_fluctuation_pi(T, mu, param; rtol=1e-2, LD=1.0) = pressure_fluctuation(integrand_pressure_pi, T, mu, param, rtol=rtol, LD=LD)
 pressure_fluctuation_pi_LD(T, mu, param; rtol=1e-2, LD=1.0) = pressure_fluctuation(integrand_pressure_pi_LD, T, mu, param, rtol=rtol, LD=LD)
