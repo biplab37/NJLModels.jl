@@ -12,5 +12,6 @@ include("mott_momenta.jl")
 include("mean_field.jl")
 include("fluctuations.jl")
 include("diquarks.jl")
+include("mass_diquark.jl")
 
 end
