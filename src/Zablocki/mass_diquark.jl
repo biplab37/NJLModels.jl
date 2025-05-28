@@ -74,3 +74,16 @@ function diquark_mass(T, mu, param, guess=[2 * massgap(T, mu, param).zero[1], 0.
 
     return mcpsolve(ff!, [2(m - mu), 0.0], [1.0, 1.0], guess, iterations=5_000)
 end
+
+function find_mass_D(T, mu, m, param)
+    rep(ω) = realpart_D_normal(T, mu, ω, 0.0, m, param)
+    if m > mu && rep(0.0) * rep(2(m - mu)) < 0.0
+        return bisection(rep, 0.0, 2(m - mu)), 0.0
+    end
+    function ff!(F, x)
+        term = Πq0_D_analytic(T, mu, x[1] - 1im * x[2] / 2, m, param)
+        F[1] = real(term)
+        F[2] = imag(term)
+    end
+    return mcpsolve(ff!, [0.0, 0.0], [Inf, Inf], [2 * (m - mu), 0.1]).zero
+end

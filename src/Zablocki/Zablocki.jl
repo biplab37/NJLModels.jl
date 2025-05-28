@@ -13,5 +13,6 @@ include("mean_field.jl")
 include("fluctuations.jl")
 include("diquarks.jl")
 include("mass_diquark.jl")
+include("baryons.jl")
 
 end
