@@ -42,5 +42,10 @@ function phase_shift_meson_q0(T, mu, ω, NM, param::Parameters; Nc=3, Nf=2)
     return atan(impi, repi)
 end
 
+function Π0_meson_analytic(T, mu, m, NM, param::Parameters; Nc=3, Nf=2)
+    pauli(p) = 1 - numberF(T, mu, En(p, m)) - numberF(T, -mu, En(p, m))
+    return 1 / (2 * param.Gs) - Nc * Nf * (integrate(p -> (1 - m^2 / En(p, m)^2)^(NM - 0.5) * p^2 * pauli(p) / En(p, m), 0, param.Λ)) / (2 * π^2)
+end
+
 phase_shift_pi_q0(T, mu, ω, param; Nc=3, Nf=2) = phase_shift_meson_q0(T, mu, ω, 0.5, param, Nc=Nc, Nf=Nf)
 phase_shift_sigma_q0(T, mu, ω, param; Nc=3, Nf=2) = phase_shift_meson_q0(T, mu, ω, 1.5, param, Nc=Nc, Nf=Nf)

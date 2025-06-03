@@ -90,14 +90,21 @@ function realpart_D_normal(T, mu, ω, q, m, param)
 
     return Π0_D(T, mu, m, param) - repart_dependent
 end
+function realpart_D_normal_dependent_part(T, mu, ω, q, m, param)
+    impart(x, y) = imagpart_D_normal(T, mu, x, y, m, param)
 
+    cutoff = 2 * sqrt(param.Λ^2 + m^2 + (q^2 / 4)) + 2 * mu
+    repart_dependent = realpart_kramers_kronig_q_1(impart, ω, q, -cutoff, cutoff)
+
+    return repart_dependent
+end
 function Πq0_D_analytic(T, mu, ω, m, param)
     if imag(ω) == 0
-        return realpart_D_normal(T, mu, ω, 0.0, m, param) + 1im * imagpart_D_normal_q0(T, mu, ω, m, param)
+        return realpart_D_normal(T, mu, real(ω), 0.0, m, param) - 1im * imagpart_D_normal_q0(T, mu, real(ω), m, param)
     end
     integrand(ep) = 4 * sqrt(ep^2 - m^2) * ep * ((2 * numberF(T, -mu, ep) - 1) / (ω + 2 * mu + 2 * ep) + (1 - 2 * numberF(T, mu, ep)) / (ω + 2 * mu - 2 * ep)) / π^2
     imagpart = (imag(ω) >= 0.0) ? 0.0 : 1im * (1 - 2 * numberF(T, 0.0, ω / 2)) * (ω + 2 * mu)^2 * sqrt(1 - 4 * m^2 / (ω + 2 * mu)^2) / (2 * π)
-    return 1 / (2 * param.GD) + integrate(integrand, m, sqrt(param.Λ^2 + m^2)) - imagpart
+    return 1 / (2 * param.GD) + integrate(integrand, m, sqrt(param.Λ^2 + m^2)) - 2imagpart
 end
 
 function phase_shift_D_normal(T, mu, ω, q, param)

@@ -5,7 +5,7 @@ function realpart_diquark_width(ω, Γ, m, T, mu, param)
     end
     cutoff = sqrt(param.Λ^2 + m^2)
 
-    return 1 / (2 * param.GD) - factor * integrate(integrand, m, 0.71)
+    return 1 / (2 * param.GD) - factor * integrate(integrand, m, cutoff)
 end
 
 function imagpart_diquark_width(ω, Γ, m, T, mu, param)
@@ -13,7 +13,7 @@ function imagpart_diquark_width(ω, Γ, m, T, mu, param)
         return sqrt(ep^2 - m^2) * ep * (((1 - 2 * numberF(T, mu, ep)) / ((ω / 2 + ep - mu)^2 + Γ^2 / 16)) - ((1 - 2 * numberF(T, -mu, ep)) / ((-ω / 2 + ep + mu)^2 + Γ^2 / 16)))
     end
 
-    return (1 / (2 * π^2)) * Γ * integrate(integrand, m, sqrt(param.Λ^2 + m^2))
+    return -(1 / (2 * π^2)) * Γ * integrate(integrand, m, sqrt(param.Λ^2 + m^2))
 end
 
 function diquark_I0(m, param)
@@ -26,7 +26,7 @@ function diquark_I1_real(M, T, mu, m, param)
     return 4 * integrate(f, m, sqrt(param.Λ^2 + m^2)) / π^2
 end
 
-function diquark_I1_imag(M, T, mu, m, param)
+function diquark_I1_imag(M, T, mu, m)
     if (M + 2mu) < 2m
         @info "Mass should be larger than 2m" T mu
         return 0.0
@@ -39,7 +39,7 @@ function diquark_I2_real(M, T, mu, m, param)
     return integrate(f, m, sqrt(param.Λ^2 + m^2))
 end
 
-function diquark_I2_imag(M, T, mu, m, param)
+function diquark_I2_imag(M, T, mu, m)
     if (M + 2mu) < 2m
         @info "Mass should be larger than 2m" T mu
         return 0.0
@@ -52,10 +52,10 @@ function approx_diquark_mass(T, mu, param)
     mus = mu + ome
 
     I0 = diquark_I0(m, param)
-    imI1(mD) = diquark_I1_imag(mD, T, mus, m, param)
-    imI2(mD) = diquark_I2_imag(mD, T, mus, m, param)
-    reI1(mD) = diquark_I2_imag(mD, T, mus, m, param)
-    reI2(mD) = diquark_I2_imag(mD, T, mus, m, param)
+    imI1(mD) = diquark_I1_imag(mD, T, mus, m)
+    imI2(mD) = diquark_I2_imag(mD, T, mus, m)
+    reI1(mD) = diquark_I2_real(mD, T, mus, m, param)
+    reI2(mD) = diquark_I2_real(mD, T, mus, m, param)
 
     gamma_m(mD) = (imI2(mD) * (1 / (2 * param.GD) - reI1(mD) - I0) + imI1(mD) * reI2(mD)) / ((mD + 2 * mu) * (imI2(mD)^2 + reI2(mD)^2))
     term1(mD) = sqrt((reI2(mD) * (1 / (2 * param.GD) - reI1(mD) - I0) - imI1(mD) * imI2(mD)) / (imI2(mD)^2 + reI2(mD)^2) + gamma_m(mD)^2 / 4) - 2 * mu
@@ -69,13 +69,16 @@ function diquark_mass(T, mu, param, guess=[2 * massgap(T, mu, param).zero[1], 0.
     m, ome = massgap(T, mu, param).zero
     mus = mu + ome
     function ff!(F, x)
-        (realpart_diquark_width(x[1], x[2], m, T, mus, param)^2 + imagpart_diquark_width(x[1], x[2], m, T, mus, param)^2)
+        F[1] = realpart_diquark_width(x[1], x[2], m, T, mus, param)^2
+        F[2] = imagpart_diquark_width(x[1], x[2], m, T, mus, param)^2
     end
 
     return mcpsolve(ff!, [2(m - mu), 0.0], [1.0, 1.0], guess, iterations=5_000)
 end
 
-function find_mass_D(T, mu, m, param)
+function find_mass_D(T, mu_0, param)
+    m, ome = massgap(T, mu_0, param).zero
+    mu = mu_0 + ome
     rep(ω) = realpart_D_normal(T, mu, ω, 0.0, m, param)
     if m > mu && rep(0.0) * rep(2(m - mu)) < 0.0
         return bisection(rep, 0.0, 2(m - mu)), 0.0
@@ -85,5 +88,5 @@ function find_mass_D(T, mu, m, param)
         F[1] = real(term)
         F[2] = imag(term)
     end
-    return mcpsolve(ff!, [0.0, 0.0], [Inf, Inf], [2 * (m - mu), 0.1]).zero
+    return nlsolve(ff!, [2 * (m - mu), 0.1]).zero
 end
