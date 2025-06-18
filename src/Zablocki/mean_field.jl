@@ -65,3 +65,15 @@ function mean_field_pressure_quark_nonrenormalized(T, mu, param, m1, ω1)
 
     return factor * (medium_term)
 end
+
+function mean_field_density(T, mu, param)
+    Pres(μ) = mean_field_pressure(T, μ, param)
+    return UsefulFunctions._derivative(Pres, mu)
+end
+
+function mean_field_density1(T, mu, param)
+    m, ω = massgap(T, mu, param).zero
+    factor = 6 / π^2
+    integrand(p) = p^2 * (numberF(T, mu + ω, En(p, m)) - numberF(T, -mu - ω, En(p, m)))
+    return factor * integrate(integrand, 0.0, param.Λ)
+end
