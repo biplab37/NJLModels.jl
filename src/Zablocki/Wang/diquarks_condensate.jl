@@ -82,6 +82,9 @@ end
 
 function spectral_function_1(T, mu, ω, p, param)
     m, _, Δ = massgap_full(T, mu, param).zero
+    if abs(Δ) < 5e-2
+        return spectral_function_without_condensate(T, mu, ω, p, param)
+    end
 
     repart = -(1 / (4 * param.GD)) - Pi_1(T, mu, ω, p, m, Δ, real_part_function, param)
     impart = -Pi_1(T, mu, ω, p, m, Δ, imag_part_function, param)
@@ -105,4 +108,41 @@ function spectral_function_I_3(T, mu, ω, p, param)
     impart = -Pi_I_3(T, mu, ω, p, m, Δ, imag_part_function, param)
 
     return impart / (π * (repart^2 + impart^2))
+end
+
+function spectral_function_without_condensate(T, mu, ω, p, param)
+    m, ome = massgap(T, mu, param).zero
+    mu += ome
+    repart = realpart_D_normal(T, mu, ω, p, m, param)
+    impart = imagpart_D_normal(T, mu, ω, p, m, param)
+
+    return impart / (π * (repart^2 + impart^2))
+end
+
+function spectral_function_without_condensate(T, mu, ω, p, m, param)
+    repart = realpart_D_normal(T, mu, ω, p, m, param)
+    impart = imagpart_D_normal(T, mu, ω, p, m, param)
+
+    return impart / (π * (repart^2 + impart^2))
+end
+
+function diquark_propagator_without_condensate(T, mu, p0, p, m, param)
+    spectral(ω) = spectral_function_without_condensate(T, mu, ω, p, m, param)
+    cutoff = sqrt(param.Λ^2 + m^2 + p^2 / 4)
+    return UsefulFunctions.PVintegral(spectral, -2 * (cutoff + mu), 2 * (cutoff - mu), p0, integrate)
+end
+
+function diquark_propagator_without_condensate(T, mu, p0, p, param)
+    m, ome = massgap(T, mu, param).zero
+    mu += ome
+    return diquark_propagator_without_condensate(T, mu, p0, p, m, param)
+end
+
+function diquark_propagator_without_condensate1(T, mu, p0, p, param)
+    m, _, Δ = massgap_full(T, mu, param).zero
+
+    repart = -(1 / (4 * param.GD)) - Pi_I_3(T, mu, p0, p, m, Δ, real_part_function, param)
+    impart = -Pi_I_3(T, mu, p0, p, m, Δ, imag_part_function, param)
+
+    return -repart / ((repart^2 + impart^2))
 end

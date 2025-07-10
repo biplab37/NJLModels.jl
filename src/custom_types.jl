@@ -19,13 +19,7 @@ Base.@kwdef mutable struct Parameters2 <: Parameters
 end
 
 function Base.show(io::IO, ::MIME"text/plain", p::Parameters)
-    println(io, "Parameters:")
-    println(io, "Λ = ", p.Λ)
-    println(io, "m0 = ", p.m0)
-    println(io, "Gs = ", p.Gs)
-    println(io, "Gv = ", p.Gv)
-    println(io, "eta_d = ", p.eta_d)
-    println(io, "GD = Gs*eta_d = ", p.GD)
+    return dump(p)
 end
 
 export Parameters

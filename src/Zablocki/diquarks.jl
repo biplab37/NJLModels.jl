@@ -37,7 +37,7 @@ end
 
 function imagpart_D_normal(T, mu, ω, q, m, param)
     # ω = ω1 + 2 * mu
-    if ω^2 > 4 * (param.Λ^2 + m^2 + (q^2 / 4))
+    if (ω + 2mu)^2 > 4 * (param.Λ^2 + m^2 + (q^2 / 4))
         return 0.0
     end
 
@@ -85,8 +85,8 @@ end
 function realpart_D_normal(T, mu, ω, q, m, param)
     impart(x, y) = imagpart_D_normal(T, mu, x, y, m, param)
 
-    cutoff = 2 * sqrt(param.Λ^2 + m^2 + (q^2 / 4)) + 2 * mu
-    repart_dependent = realpart_kramers_kronig_q_1(impart, ω, q, -cutoff, cutoff)
+    cutoff = sqrt(param.Λ^2 + m^2 + (q^2 / 4))
+    repart_dependent = realpart_kramers_kronig_q_1(impart, ω, q, -2 * (cutoff + mu), 2 * (cutoff - mu))
 
     return Π0_D(T, mu, m, param) - repart_dependent
 end

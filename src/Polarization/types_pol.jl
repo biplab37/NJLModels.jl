@@ -22,7 +22,6 @@ abstract type Numerator end
 
 Base.@kwdef mutable struct Numerator_Pi_1
     numerator::Function
-
 end
 
 abstract type PolarizationFunction end
@@ -34,6 +33,19 @@ Base.@kwdef mutable struct CustomPolarization <: PolarizationFunction
 end
 
 abstract type MeanField end
+
+Base.@kwdef mutable struct MeanField_P <: MeanField
+    pressure::Function
+end
+
+abstract type Gap end
+
+Base.@kwdef mutable struct Gaps <: Gap
+    variables::Vector
+    gap_eqn::Function
+    num_var::Int = length(variables)
+    initial_guess::Vector
+end
 
 abstract type Model end
 
