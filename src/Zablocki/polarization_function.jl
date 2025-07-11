@@ -3,11 +3,16 @@ function Π0_meson(T, mu, m, NM, param::Parameters; Nc=3, Nf=2)
     return 1 / (2 * param.Gs) - Nc * Nf * (integrate(p -> (1 - m^2 / En(p, m)^2)^(NM - 0.5) * p^2 * pauli(p) / En(p, m), 0, param.Λ)) / (2 * π^2)
 end
 
-function imagpart_meson_q0(T, mu, ω, m, NM, param::Parameters; Nc=3, Nf=2)
+function imagpart_meson_q0(T, mu, ω::Real, m, NM, param::Parameters; Nc=3, Nf=2)
     # NM=1/2 for pion and 3/2 for sigma
     if ω^2 < 4 * m^2 || ω^2 > 4 * (param.Λ^2 + m^2)
         return 0.0
     end
+    return imagpart_meson_q0_C(T, mu, ω, m, NM, Nc=Nc, Nf=Nf)
+end
+
+function imagpart_meson_q0_C(T, mu, ω, m, NM; Nc=3, Nf=2)
+    # NM=1/2 for pion and 3/2 for sigma
     factor = Nc / 4π
     pauli_term = 1 - numberF(T, mu, ω / 2) - numberF(T, -mu, ω / 2)
     return factor * ω^2 * ((1 - (4 * m^2 / ω^2))^NM) * pauli_term
@@ -42,10 +47,27 @@ function phase_shift_meson_q0(T, mu, ω, NM, param::Parameters; Nc=3, Nf=2)
     return atan(impi, repi)
 end
 
-function Π0_meson_analytic(T, mu, m, NM, param::Parameters; Nc=3, Nf=2)
+@doc raw"""
+    Π0_meson_analytic(T, mu, ω, m, NM, param::Parameters; Nc=3, Nf=2)
+
+This function stiches two Riemann scheet together. The physical sheet on the upeer half plane and the second sheet on the lower half.
+"""
+function Π0_meson_analytic(T, mu, ω, m, NM, param::Parameters; Nc=3, Nf=2)
     pauli(p) = 1 - numberF(T, mu, En(p, m)) - numberF(T, -mu, En(p, m))
-    return 1 / (2 * param.Gs) - Nc * Nf * (integrate(p -> (1 - m^2 / En(p, m)^2)^(NM - 0.5) * p^2 * pauli(p) / En(p, m), 0, param.Λ)) / (2 * π^2)
+    ep(p) = En(p, m)
+    repart = 1 / (2 * param.Gs) - Nc * Nf * (integrate(p -> (1 - m^2 / ep(p)^2)^(NM - 0.5) * p^2 * pauli(p) * (1/(ep(p) + ω/2) + 1/(ep(p) - ω/2)), 0, param.Λ)) / (4 * π^2)
+    if imag(ω) >0
+        return repart
+    elseif imag(ω) <0
+        return repart - 2im*imagpart_meson_q0_C(T, mu, ω, m, NM, Nc=Nc, Nf=Nf)
+    else
+        return realpart_meson_q0(T, mu, ω, m, NM, param, Nc=Nc, Nf=Nf)
+    end
 end
 
 phase_shift_pi_q0(T, mu, ω, param; Nc=3, Nf=2) = phase_shift_meson_q0(T, mu, ω, 0.5, param, Nc=Nc, Nf=Nf)
 phase_shift_sigma_q0(T, mu, ω, param; Nc=3, Nf=2) = phase_shift_meson_q0(T, mu, ω, 1.5, param, Nc=Nc, Nf=Nf)
+
+function find_meson_mass(T, mu, NM, param::Parameters)
+    return nothing
+end
