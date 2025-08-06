@@ -1,4 +1,7 @@
-function integrate(func, a, b; rtol=1e-3, maxevals=1e4)
+function integrate(func, a, b; rtol=1e-3, maxevals=1e4, err=false)
+    if err
+        return quadgk(func, a, b, rtol=rtol, maxevals=maxevals)
+    end
     return quadgk(func, a, b, rtol=rtol, maxevals=maxevals)[1]
 end
 
@@ -29,7 +32,17 @@ function realpart_kramers_kronig_q(imagpart::Function, ω, q, cutoff)
     return integrate(integrand, 0.0, cutoff)
 end
 
-function realpart_kramers_kronig_q_1(imagpart::Function, ω, q, cutoff1, cutoff2)
+function realpart_kramers_kronig_q_1(imagpart::Function, ω, q, cutoff1, cutoff2; rtol=1e-3, maxevals=1e4, err=false)
     integrand(ν) = (imagpart(ν, q) * PrincipalValue(ν - ω) - imagpart(ν, 0.0) * PrincipalValue(ν)) / π
-    return integrate(integrand, cutoff1, cutoff2)
+    return integrate(integrand, cutoff1, cutoff2, rtol=rtol, maxevals=maxevals, err=err)
+end
+
+function realpart_kramers_kronig(imagpart::Function, ω, cutoff)
+    integrand(ν) = 2 * ν * (imagpart(ν) * PrincipalValue(ν^2 - ω^2) - imagpart(ν) * PrincipalValue(ν^2)) / π
+    return integrate(integrand, 0.0, cutoff)
+end
+
+function realpart_kramers_kronig_1(imagpart::Function, ω, cutoff1, cutoff2; rtol=1e-3, maxevals=1e4, err=false)
+    integrand(ν) = (imagpart(ν) * PrincipalValue(ν - ω) - imagpart(ν) * PrincipalValue(ν)) / π
+    return integrate(integrand, cutoff1, cutoff2, rtol=rtol, maxevals=maxevals, err=err)
 end

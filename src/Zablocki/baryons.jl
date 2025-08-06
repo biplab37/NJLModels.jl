@@ -72,12 +72,12 @@ end
 function coupling_B(T, mu, mq, mD, param)
     pol_D(ω) = realpart_D_normal_dependent_part(T, mu, ω, 0.0, mq, param)
     der = UsefulFunctions._derivative(pol_D, mD)
-    return 4 * mD / (mq * der)
+    return 16 * mD / (mq * der)
     # return 90
 end
 
 function Π0_B(T, mu, mq, mD, param)
-    factor = mq / (2π^2)
+    factor = mq / (π^2)
     eq(p) = sqrt(p^2 + mq^2)
     eD(p) = sqrt(p^2 + mD^2)
 
@@ -96,7 +96,7 @@ function full_real_part_baryon(T, mu, ω, mq, mD, param)
     term3(p) = -(numberF(T, -mu, eq(p)) + numberB(T, mu, eD(p))) * PrincipalValue(ω + 3 * mu - eq(p) + eD(p))
     term4(p) = (numberF(T, mu, eq(p)) + numberB(T, -mu, eD(p))) * PrincipalValue(ω + 3 * mu + eq(p) - eD(p))
 
-    factor(p) = mq * p^2 / (2π^2 * eq(p) * eD(p))
+    factor(p) = mq * p^2 / (π^2 * eq(p) * eD(p))
 
     integrand(p) = factor(p) * (term1(p) + term2(p) + term3(p) + term4(p))
 
@@ -114,7 +114,7 @@ end
 
 
 function realpart_baryon_q0(T, mu, ω, mq, mD, param)
-    factor = mq / (2π^2)
+    factor = mq / (π^2)
     eq(p) = sqrt(p^2 + mq^2)
     eD(p) = sqrt(p^2 + mD^2)
 
