@@ -90,3 +90,19 @@ function find_mass_D(T, mu_0, param)
     end
     return nlsolve(ff!, [2 * (m - mu), 0.1]).zero
 end
+
+function find_mass_D_q(T, mu_0, q, param)
+    m, ome = massgap(T, mu_0, param).zero
+    mu = mu_0 + ome
+    rep(ω) = realpart_D_normal(T, mu, ω, q, m, param)
+    EQ = sqrt(q^2 + 4m^2)
+    if EQ > mu && rep(0.0) * rep(EQ - 2mu) < 0.0
+        return bisection(rep, 0.0, EQ - 2mu), 0.0
+    end
+    function ff!(F, x)
+        term = Πq0_D_analytic(T, mu, x[1] - 1im * x[2] / 2, m, param)
+        F[1] = real(term)
+        F[2] = imag(term)
+    end
+    return nlsolve(ff!, [2 * (EQ - mu), 0.1]).zero
+end

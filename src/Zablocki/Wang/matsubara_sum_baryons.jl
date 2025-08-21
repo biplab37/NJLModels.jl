@@ -26,17 +26,18 @@ function realpart_self_B(T, mu, m, p0, param)
     return realpart_kramers_kronig_1(func, p0, -2.0, 2.0, rtol=1e-1, maxevals=1000)
 end
 
-function imagpart_baryons(T, m, p0, param)#At zero chemical potential
+function imagpart_baryons(T, p0, m, mD, ΓD, param)#At zero chemical potential
     rho(om, k) = spectral_function_D_normal(T, 0.0, om, k, param)
     k(en) = sqrt(en^2 - m^2)
     f(x) = numberF(T, 0.0, x)
     g(x) = numberB(T, 0.0, x)
     func(en) = m * k(en) * (rho(p0 - en, k(en)) * (1 - f(en) + g(p0 - en)) - rho(p0 + en, k(en)) * (f(en) + g(p0 + en))) / π
-    return integrate(func, m, sqrt(param.Λ^2 + m^2))
+    impa = (ΓD != 0) ? 0.0 : imagpart_baryon_q0(T, 0.0, p0, m, mD, param)
+    return 0.25 * integrate(func, m, sqrt(param.Λ^2 + m^2)) + impa
 end
 
-function realpart_baryons(T, m, p0, param)
-    func(x) = imagpart_baryons(T, m, x, param)
+function realpart_baryons(T, p0, m, mD, ΓD, param)
+    func(x) = imagpart_baryons(T, x, m, mD, ΓD, param)
 
-    return realpart_kramers_kronig_1(func, p0, -4.0, 4.0, rtol=1e-1, maxevals=200, err=true)
+    return realpart_kramers_kronig_1(func, p0, -4.0, 4.0, rtol=1e-2, maxevals=500)
 end
