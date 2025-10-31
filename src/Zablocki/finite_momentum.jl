@@ -2,11 +2,11 @@
 ## at finite external momenta
 
 function imagpart_meson_q(ω, T, mu, q, gap, Nm, param::Parameters)
-    if q == 0
-        return imagpart_meson_q0(T, mu, ω, gap[1], Nm + 1 / 2, param)
-    end
     m = gap[1]
     mus = gap[2] + mu # μ⁰ = μ + ω₀
+    if q == 0
+        return imagpart_meson_q0(T, mus, ω, gap[1], Nm + 1 / 2, param)
+    end
     s = ω^2 - q^2
 
     if 0 <= s <= 4 * m^2 || s >= 4 * (param.Λ^2 + m^2)
@@ -47,14 +47,18 @@ end
 imagpart_pi_q(ω, T, mu, q, gap, param) = imagpart_meson_q(ω, T, mu, q, gap, 0, param)
 imagpart_sigma_q(ω, T, mu, q, gap, param) = imagpart_meson_q(ω, T, mu, q, gap, 1, param)
 
-function realpart_meson_q(ω, T, mu, q, gap, Nm, param)
+function realpart_meson_q_dependent(ω, T, mu, q, gap, Nm, param)
     m = gap[1]
     impart(x, y) = imagpart_meson_q(x, T, mu, y, gap, Nm, param)
     cutoff = 2 * sqrt(param.Λ^2 + m^2 + q^2 / 4)
     function integrand(ν)
         return 2 * ν * (impart(ν, q) * PrincipalValue(ν^2 - ω^2) - impart(ν, 0.0) * PrincipalValue(ν^2)) / π
     end
-    return Π0_meson(T, mu + gap[2], m, Nm + 1 / 2, param) - integrate(integrand, 0.0, cutoff)
+    return -integrate(integrand, 0.0, cutoff, maxevals=1e5)
+end
+
+function realpart_meson_q(ω, T, mu, q, gap, Nm, param)
+    return Π0_meson(T, mu + gap[2], gap[1], Nm + 1 / 2, param) + realpart_meson_q_dependent(ω, T, mu, q, gap, Nm, param)
 end
 
 function fullrealpart_meson_q(ω, T, mu, q, gap, Nm, param)
@@ -76,3 +80,4 @@ end
 
 phase_shift_pi_q(T, mu, ω, q, param) = phase_shift_meson_q(T, mu, ω, q, 0, param)
 phase_shift_sigma_q(T, mu, ω, q, param) = phase_shift_meson_q(T, mu, ω, q, 1, param)
+

@@ -1,6 +1,6 @@
 function Π0_meson(T, mu, m, NM, param::Parameters; Nc=3, Nf=2)
     pauli(p) = 1 - numberF(T, mu, En(p, m)) - numberF(T, -mu, En(p, m))
-    return 1 / (2 * param.Gs) - Nc * Nf * (integrate(p -> (1 - m^2 / En(p, m)^2)^(NM - 0.5) * p^2 * pauli(p) / En(p, m), 0, param.Λ)) / (2 * π^2)
+    return 1 / (2 * param.Gs) - 2*Nc * Nf * (integrate(p -> (1 - m^2 / En(p, m)^2)^(NM - 0.5) * p^2 * pauli(p) / En(p, m), 0, param.Λ)) / (2 * π^2)
 end
 
 function imagpart_meson_q0(T, mu, ω::Real, m, NM, param::Parameters; Nc=3, Nf=2)
