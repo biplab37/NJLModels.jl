@@ -16,6 +16,7 @@ include("mass_diquark.jl")
 include("baryons.jl")
 include("polarisation_mesons_analytic.jl")
 include("spectral_functions.jl")
+include("imaginary_part.jl")
 
 include("Wang/wang.jl")
 
