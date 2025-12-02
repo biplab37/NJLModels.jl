@@ -81,7 +81,7 @@ function find_mass_D(T, mu_0, param)
     mu = mu_0 + ome
     rep(ω) = realpart_D_normal(T, mu, ω, 0.0, m, param)
     if m > mu && rep(0.0) * rep(2(m - mu)) < 0.0
-        return bisection(rep, 0.0, 2(m - mu)), 0.0
+        return bisection(rep, 0.3, 2(m - mu)), 0.0
     end
     function ff!(F, x)
         term = Πq0_D_analytic(T, mu, x[1] - 1im * x[2] / 2, m, param)
