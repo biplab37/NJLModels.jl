@@ -37,7 +37,7 @@ function realpart_kramers_kronig_q_1(imagpart::Function, ω, q, cutoff1, cutoff2
     return integrate(integrand, cutoff1, cutoff2, rtol=rtol, maxevals=maxevals, err=err)
 end
 
-function realpart_kramers_kronig(imagpart::Function, ω, cutoff)
+function realpart_kramers_kronig(imagpart::Function, ω, cutoff; rtol=1e-3, maxevals=1e4, err=false)
     integrand(ν) = 2 * ν * (imagpart(ν) * PrincipalValue(ν^2 - ω^2) - imagpart(ν) * PrincipalValue(ν^2)) / π
     return integrate(integrand, 0.0, cutoff)
 end

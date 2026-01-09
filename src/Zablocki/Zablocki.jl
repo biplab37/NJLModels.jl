@@ -1,6 +1,6 @@
 module Zablocki
 
-using UsefulFunctions, NLsolve, QuadGK, Cubature
+using UsefulFunctions, NLsolve, QuadGK, Cubature, Interpolations
 
 include("../custom_types.jl")
 include("custom_types_specific.jl")
@@ -16,6 +16,8 @@ include("mass_diquark.jl")
 include("baryons.jl")
 include("polarisation_mesons_analytic.jl")
 include("spectral_functions.jl")
+include("baryons_spectral.jl")
+include("baryons_interpolated.jl")
 
 include("refactored/imaginary_part.jl")
 include("refactored/two_quarks.jl")

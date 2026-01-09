@@ -2,3 +2,4 @@ rough/
 *.pdf
 .vscode/
 Plots/
+quarto_notebooks/

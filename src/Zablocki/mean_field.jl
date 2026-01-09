@@ -75,5 +75,35 @@ function mean_field_density1(T, mu, param)
     m, ω = massgap(T, mu, param).zero
     factor = 6 / π^2
     integrand(p) = p^2 * (numberF(T, mu + ω, En(p, m)) - numberF(T, -mu - ω, En(p, m)))
-    return factor * integrate(integrand, 0.0, param.Λ)
+    return factor * integrate(integrand, 0.0, 10.0)
+end
+
+function mean_field_density2(T, mu, param)
+    m, ω = massgap(T, mu, param).zero
+    Pres(μ) = mean_field_pressure_quark_nonrenormalized(T, μ, param, m, ω)
+    return UsefulFunctions._derivative(Pres, mu)
+end
+
+function mean_field_entropy_density(T, mu, param)
+    Pres(t) = mean_field_pressure(t, mu, param)
+    return UsefulFunctions._derivative(Pres, T)
+end
+
+function mean_field_entropy_density2(T, mu, param)
+    m, ω = massgap(T, mu, param).zero
+    Pres(t) = mean_field_pressure_quark_nonrenormalized(t, mu, param, m, ω)
+    return UsefulFunctions._derivative(Pres, T)
+end
+
+"""
+    mean_field_energy(T, mu, param)
+
+Returns the energy density at the mean field level for the NJL model with sharp cutoff.
+"""
+function mean_field_energy(T, mu, param)
+    return -mean_field_pressure(T, mu, param) + T*mean_field_entropy_density(T, mu, param) + mu*mean_field_density(T, mu, param)
+end
+
+function mean_field_energy2(T, mu, param)
+    return -mean_field_pressure(T, mu, param) + T*mean_field_entropy_density2(T, mu, param) + mu*mean_field_density2(T, mu, param)
 end

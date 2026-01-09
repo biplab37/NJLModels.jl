@@ -1,17 +1,22 @@
 name = "NJLModels"
 uuid = "25fe4e97-1edf-40f5-ae41-a90988c3525d"
-authors = ["biplab37 <biplabmahato37@gmail.com>"]
 version = "0.1.0"
+authors = ["biplab37 <biplabmahato37@gmail.com>"]
 
 [deps]
 Cubature = "667455a9-e2ce-5579-9412-b964f529a492"
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 UsefulFunctions = "3faa5a7b-8411-4986-9283-d50561d89da5"
 
+[sources]
+UsefulFunctions = {rev = "main", url = "https://github.com/biplab37/UsefulFunctions.jl"}
+
 [compat]
 Cubature = "1.5.1"
+Interpolations = "0.16.2"
 NLsolve = "4.5.1"
 QuadGK = "2.11.2"
 Test = "1.11.0"
