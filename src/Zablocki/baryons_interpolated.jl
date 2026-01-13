@@ -32,5 +32,3 @@ function distribution_function_q(T, mu, q, mq, mD, param)
 
     return integrate(integrand, 0.0, cutoff)
 end
-
-
