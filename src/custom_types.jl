@@ -18,6 +18,16 @@ Base.@kwdef mutable struct Parameters2 <: Parameters
     GD = eta_d * Gs
 end
 
+# From Maslov paper
+Base.@kwdef mutable struct ParametersMaslov <: Parameters
+    Λ = 0.651
+    m0 = 0.0055
+    Gs = 5.04
+    Gv = Gs / 2
+    eta_d = 0.75
+    GD = eta_d * Gs
+end
+
 function Base.show(io::IO, ::MIME"text/plain", p::Parameters)
     return dump(p)
 end
