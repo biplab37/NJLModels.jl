@@ -101,9 +101,23 @@ end
 Returns the energy density at the mean field level for the NJL model with sharp cutoff.
 """
 function mean_field_energy(T, mu, param)
-    return -mean_field_pressure(T, mu, param) + T*mean_field_entropy_density(T, mu, param) + mu*mean_field_density(T, mu, param)
+    return -mean_field_pressure(T, mu, param) + T * mean_field_entropy_density(T, mu, param) + mu * mean_field_density(T, mu, param)
 end
 
 function mean_field_energy2(T, mu, param)
-    return -mean_field_pressure(T, mu, param) + T*mean_field_entropy_density2(T, mu, param) + mu*mean_field_density2(T, mu, param)
+    return -mean_field_pressure(T, mu, param) + T * mean_field_entropy_density2(T, mu, param) + mu * mean_field_density2(T, mu, param)
+end
+
+
+## Momentum dependence
+function mean_field_density_q(q, T, mu, param)
+    m, ω = massgap(T, mu, param).zero
+    factor = 6 / π^2
+    return q^2 * (numberF(T, mu + ω, En(q, m)) + numberF(T, -mu - ω, En(q, m)))
+end
+
+function mean_field_density_q2(q, T, mu, param)
+    m, ω = massgap(T, mu, param).zero
+    factor = 6 / π^2
+    return q^2 * (numberF(T, mu + ω, En(q, m)) + numberF(T, -mu - ω, En(q, m)))
 end
