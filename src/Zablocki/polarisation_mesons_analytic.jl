@@ -8,7 +8,7 @@ This function stiches two Riemann scheet together. The physical sheet on the upe
 function Π0_meson_analytic(T, mu, ω, m, NM, param::Parameters; Nc=3, Nf=2)
     pauli(p) = 1 - numberF(T, mu, En(p, m)) - numberF(T, -mu, En(p, m))
     ep(p) = En(p, m)
-    repart = 1 / (2 * param.Gs) - Nc * Nf * (integrate(p -> (1 - m^2 / ep(p)^2)^(NM - 0.5) * p^2 * pauli(p) * (1 / (ep(p) + ω / 2) + 1 / (ep(p) - ω / 2)), 0, param.Λ)) / (4 * π^2)
+    repart = 1 / (2 * param.Gs) - 2*Nc * Nf * (integrate(p -> (1 - m^2 / ep(p)^2)^(NM - 0.5) * p^2 * pauli(p) * (1 / (ep(p) + ω / 2) + 1 / (ep(p) - ω / 2)), 0, param.Λ)) / (4 * π^2)
     if imag(ω) > 0
         return repart
     elseif imag(ω) < 0

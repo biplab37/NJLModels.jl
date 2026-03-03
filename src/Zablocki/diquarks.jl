@@ -6,16 +6,15 @@ s_D(ω, q, mu, sign) = ω_D(ω, mu, sign)^2 - q^2
 
 E_D(sign_up, sign_down, ω, q, mu, m) = 0.5 * (ω_D(ω, mu, sign_down) + sign_up * q * sqrt(1 - (4 * m^2 / s_D(ω, q, mu, sign_down))))
 
-function J_D_pair(sign, T, mu, ω, q, m)
-    NN(sign_up, sign_fermi, sign_energy) = numberF(T, -sign * sign_fermi * mu, sign_energy * E_D(sign_up, sign, ω, q, mu, m))
+_NN(T, mu, ω, q, m, sign_up, sign_down, sign_fermi, sign_energy) = numberF(T, -sign_down * sign_fermi * mu, sign_energy * E_D(sign_up, sign_down, ω, q, mu, m))
 
-    return T * log((NN(-1, +1, -1) * NN(-1, -1, +1)) / (NN(+1, +1, -1) * NN(+1, -1, +1)))
+function J_D_pair(sign::Int, T, mu, ω, q, m)
+
+    return T * log((_NN(T, mu, ω, q, m, -1, sign, +1, -1) * _NN(T, mu, ω, q, m, -1, sign, -1, +1)) / (_NN(T, mu, ω, q, m, +1, sign, +1, -1) * _NN(T, mu, ω, q, m, +1, sign, -1, +1)))
 end
 
-function J_D_Landau(sign, T, mu, ω, q, m)
-    NN(sign_up, sign_fermi, sign_energy) = numberF(T, -sign * sign_fermi * mu, sign_energy * E_D(sign_up, sign, ω, q, mu, m))
-
-    return 2 * T * log(NN(-1, -1, +1) / NN(+1, +1, -1))
+function J_D_Landau(sign::Int, T, mu, ω, q, m)
+    return 2 * T * log(_NN(T, mu, ω, q, m, -1, sign, -1, +1) / _NN(T, mu, ω, q, m, +1, sign, +1, -1))
 end
 
 function imagpart_D_normal_q0(T, mu, ω, m, param)
@@ -142,7 +141,20 @@ function spectral_function_D_normal(T, mu, ω, q, param)
     mus = mu + ome
 
     impart = imagpart_D_normal(T, mus, ω, q, m, param)
+    if abs(impart) < 1e-4
+        return 0.0
+    end
+
     repart = realpart_D_normal(T, mus, ω, q, m, param)
+    return impart / (π * (repart^2 + impart^2))
+end
+
+function spectral_function_D_normal(T, mu, ω, q, m, param)
+    impart = imagpart_D_normal(T, mu, ω, q, m, param)
+    if abs(impart) <= 1e-4
+        return 0.0
+    end
+    repart = realpart_D_normal(T, mu, ω, q, m, param)
 
     return impart / (π * (repart^2 + impart^2))
 end
@@ -161,4 +173,8 @@ function propagator_D_normal(T, mu, ω, q, param)
     integrand(ν) = 2 * ν * spectral_function_D_normal(T, mu, ω, q, param) / (ν + ω)
     cutoff = 2 * sqrt(param.Λ^2 + massgap(T, mu, param).zero[1]^2)
     return PVintegral(integrand, 0.0, cutoff, ω, integrate)
+end
+
+function wave_function_renormalization_diquark(T, mu, q, m, ed, param, tol=1e-6)
+    return tol / abs(realpart_D_normal(T, mu, ed + tol, q, m, param) - realpart_D_normal(T, mu, ed, q, m, param)) 
 end
