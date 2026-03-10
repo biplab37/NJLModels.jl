@@ -110,7 +110,7 @@ end
 function find_diquark_energy_q(T, mu, q, m, param)
     EQ = sqrt(q^2 + 4m^2)
 
-    if EQ>mu && realpart_D_normal(T, mu, EQ - 2mu, q, m, param) < 0.0
+    if EQ>mu && realpart_D_normal(T, mu, 0.0, q, m, param) * realpart_D_normal(T, mu, EQ - 2mu, q, m, param) < 0.0
         return bisection(x -> realpart_D_normal(T, mu, x, q, m, param), 0.0, EQ - 2mu)
     end
 

@@ -48,8 +48,23 @@ function sigma_B_00_s_bound(T, mu, m, param)
     return integrate(k -> _integ_sigma_B_00_s_bound(T, mu, k, m, param), 0.0, cutoff)
 end
 
+function imagpart_baryons_spectral_normal_q0_s_bound(T, mu, p0, m, param)
+    ed = find_diquark_energy_q(T, mu, 0.0, m, param)
+    if ed == 0.0
+        return 0.0
+    end
+    Zk = wave_function_renormalization_diquark(T, mu, 0.0, m, ed, param)
+    ed = 0.5 * abs((p0^2 - m^2 + ed^2) / p0)
+
+    return imagpart_baryon_q(T, mu, p0, 0.0, m, ed, param) * Zk/(ed)
+end
+
+function imagpart_baryons_spectral_normal_total_q0(T, mu, p0, m, param)
+    return imagpart_baryons_spectral_normal_q0_s_cor(T, mu, p0, m, param) + imagpart_baryons_spectral_normal_q0_s_bound(T, mu, p0, m, param)
+end
+
 function realpart_baryons_spectral_normal_q0_s(T, mu, p0, m, param)
-    return realpart_kramers_kronig(x -> imagpart_baryons_spectral_normal_q0_s_cor(T, mu, x, m, param), p0, 6 * param.Λ)
+    return realpart_kramers_kronig(x -> (imagpart_baryons_spectral_normal_total_q0(T, mu, x, m, param)), p0, 6 * param.Λ)
 end
 
 export imagpart_baryons_spectral_normal_q0_s, realpart_baryons_spectral_normal_q0_s
