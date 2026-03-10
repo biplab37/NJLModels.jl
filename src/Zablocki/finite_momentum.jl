@@ -78,6 +78,16 @@ function phase_shift_meson_q(T, mu, ω, q, Nm, param::Parameters)
     return atan(impi, repi)
 end
 
+function phase_shift_meson_q_m(T, mu, ω, q, m, Nm, param::Parameters)
+    gap = [m, 0.0]
+    impi = imagpart_meson_q(ω, T, mu, q, gap, Nm, param)
+    repi = realpart_meson_q(ω, T, mu, q, gap, Nm, param)
+    return atan(impi, repi)
+end
+
 phase_shift_pi_q(T, mu, ω, q, param) = phase_shift_meson_q(T, mu, ω, q, 0, param)
 phase_shift_sigma_q(T, mu, ω, q, param) = phase_shift_meson_q(T, mu, ω, q, 1, param)
+
+phase_shift_pi_q_m(T, mu, ω, q, m, param) = phase_shift_meson_q_m(T, mu, ω, q, m, 0, param)
+phase_shift_sigma_q_m(T, mu, ω, q, m, param) = phase_shift_meson_q_m(T, mu, ω, q, m, 1, param)
 

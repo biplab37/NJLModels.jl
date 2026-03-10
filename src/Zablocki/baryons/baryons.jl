@@ -83,7 +83,7 @@ function imagpart_baryon_q0(T, mu, ω, mq, mD, param)
     if eD < 1e-5
         @show mq, mD, ω
     end
-    p = sqrt(abs(mq^4 + (mD^2 - ω^2)^2 - 2mq^2 * (mD^2 + ω^2))) / abs(ω)
+    p = sqrt(abs(mq^4 + (mD^2 - ω^2)^2 - 2mq^2 * (mD^2 + ω^2))) / (2*abs(ω))
     factor = -p * mq / (2π)
     term1 = (1 - numberF(T, mu, eq) + numberB(T, mu, eD)) / (eq + eD)
     term2 = -(1 - numberF(T, -mu, eq) + numberB(T, -mu, eD)) / (eq + eD)
@@ -188,7 +188,7 @@ function baryon_mass(T, mu_0, param)
     m, ome = massgap(T, mu_0, param).zero
     mu = mu_0 + ome
     mD = find_mass_D(T, mu, param)[1]
-    rep(ω) = realpart_baryon_q(T, mu, ω, 0.001, m, mD, param)
+    rep(ω) = realpart_baryon_q(T, mu, ω, 0.0, m, mD, param)
     if m > mu && rep(0.0) * rep(m + mD) < 0.0
         return fzero(rep, 0.4)
     end

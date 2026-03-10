@@ -25,4 +25,6 @@ include("refactored/two_quarks.jl")
 
 include("Wang/wang.jl")
 
+include("generalized_gap_equation.jl")
+
 end
