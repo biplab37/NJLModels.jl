@@ -1,3 +1,6 @@
+"""
+Top level abstraction for controlling the constant parameters
+"""
 abstract type Parameters end
 
 Base.@kwdef struct Parameters1 <: Parameters
