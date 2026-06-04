@@ -50,3 +50,7 @@ function realpart_kramers_kronig_2(imagpart::Function, ω, cutoff1, cutoff2; rto
     integrand(ν) = (imagpart(ν) * PrincipalValue(ν - ω)) / π
     return integrate(integrand, cutoff1, cutoff2, rtol=rtol, maxevals=maxevals, err=err)
 end
+function realpart_kramers_kronig_mod(imagpart::Function, ω, cutoff)
+    integrand(ν) = 2 * ω^2 * (imagpart(ν) * PrincipalValue(ν * (ν^2 - ω^2))) / π
+    return integrate(integrand, 0.0, cutoff)
+end

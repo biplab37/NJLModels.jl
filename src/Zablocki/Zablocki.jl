@@ -1,6 +1,6 @@
 module Zablocki
 
-using UsefulFunctions, NLsolve, QuadGK, Cubature, Interpolations
+using UsefulFunctions, NLsolve, QuadGK, Cubature, Interpolations, AdaptiveSparseGrids, FastChebInterp
 
 include("../custom_types.jl")
 include("custom_types_specific.jl")
@@ -19,6 +19,7 @@ include("spectral_functions.jl")
 include("baryons/baryons_spectral.jl")
 include("baryons/baryons_interpolated.jl")
 include("baryons/new_baryons.jl")
+include("baryons/baryon_cheb_interp.jl")
 
 include("refactored/imaginary_part.jl")
 include("refactored/two_quarks.jl")
@@ -26,5 +27,8 @@ include("refactored/two_quarks.jl")
 include("Wang/wang.jl")
 
 include("generalized_gap_equation.jl")
+
+## trying interpolation again
+# include("interpolated_again/imag_real.jl")
 
 end

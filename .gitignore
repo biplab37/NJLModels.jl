@@ -3,3 +3,4 @@ rough/
 .vscode/
 Plots/
 quarto_notebooks/
+*.code-workspace
