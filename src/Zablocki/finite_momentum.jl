@@ -31,7 +31,7 @@ function imagpart_meson_q(ω, T, mu, q, gap, Nm, param::Parameters)
 end
 
 function JM(T, mu, Ep_plus, Ep_minus)
-    NN(x) = numberF(T, mu, x)
+    NN(x) = FD_dist(T, mu, x)
     return T * log((NN(-Ep_minus) * NN(Ep_minus)) / (NN(-Ep_plus) * NN(Ep_plus)))
 end
 
@@ -39,8 +39,8 @@ JM_plus(T, mu, Ep_plus, Ep_minus) = JM(T, mu, Ep_plus, Ep_minus)
 JM_minus(T, mu, Ep_plus, Ep_minus) = JM(T, -mu, Ep_plus, Ep_minus)
 
 function JM_Landau(T, mu, Ep_plus, Ep_minus)
-    NM(x) = numberF(T, mu, x)
-    NP(x) = numberF(T, -mu, x)
+    NM(x) = FD_dist(T, mu, x)
+    NP(x) = FD_dist(T, -mu, x)
     return T * log(NP(Ep_minus) * NM(Ep_minus) / (NP(-Ep_plus) * NM(-Ep_plus)))
 end
 
@@ -90,4 +90,16 @@ phase_shift_sigma_q(T, mu, ω, q, param) = phase_shift_meson_q(T, mu, ω, q, 1, 
 
 phase_shift_pi_q_m(T, mu, ω, q, m, param) = phase_shift_meson_q_m(T, mu, ω, q, m, 0, param)
 phase_shift_sigma_q_m(T, mu, ω, q, m, param) = phase_shift_meson_q_m(T, mu, ω, q, m, 1, param)
+
+
+## Pauli Villars
+function pv_regularized_imagpart_pi(om, T, mu, q, gap, param_1, param_2)
+    α = [0, 1, 2]
+    c = [1, -2, 1]
+
+    func(m) = Zablocki.imagpart_pi_q(om, T, mu, q, [m, gap[1]], param_2)
+
+    return sum(c[i] * func(sqrt(gap[1]^2 + α[i] * param_1.Λ^2)) for i in eachindex(c))
+end
+
 

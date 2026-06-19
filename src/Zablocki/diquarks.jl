@@ -6,15 +6,15 @@ s_D(ω, q, mu, sign) = ω_D(ω, mu, sign)^2 - q^2
 
 E_D(sign_up, sign_down, ω, q, mu, m) = 0.5 * (ω_D(ω, mu, sign_down) + sign_up * q * sqrt(1 - (4 * m^2 / s_D(ω, q, mu, sign_down))))
 
-_NN(T, mu, ω, q, m, sign_up, sign_down, sign_fermi, sign_energy) = numberF(T, -sign_down * sign_fermi * mu, sign_energy * E_D(sign_up, sign_down, ω, q, mu, m))
+_NN(T, mu, ω, q, m, sign_up, sign_down, sign_fermi, sign_energy) = FD_dist(T, -sign_down * sign_fermi * mu, sign_energy * E_D(sign_up, sign_down, ω, q, mu, m))
 
 function J_D_pair(sign::Int, T, mu, ω, q, m)
 
-    return T * log((_NN(T, mu, ω, q, m, -1, sign, +1, -1) * _NN(T, mu, ω, q, m, -1, sign, -1, +1)) / (_NN(T, mu, ω, q, m, +1, sign, +1, -1) * _NN(T, mu, ω, q, m, +1, sign, -1, +1)))
+    return T * log((_NN(T, 0.0, ω, q, m, -1, sign, +1, -1) * _NN(T, 0.0, ω, q, m, -1, sign, -1, +1)) / (_NN(T, 0.0, ω, q, m, +1, sign, +1, -1) * _NN(T, 0.0, ω, q, m, +1, sign, -1, +1)))
 end
 
 function J_D_Landau(sign::Int, T, mu, ω, q, m)
-    return 2 * T * log(_NN(T, mu, ω, q, m, -1, sign, -1, +1) / _NN(T, mu, ω, q, m, +1, sign, +1, -1))
+    return 2 * T * log(_NN(T, 0.0, ω, q, m, -1, sign, -1, +1) / _NN(T, 0.0, ω, q, m, +1, sign, +1, -1))
 end
 
 function imagpart_D_normal_q0(T, mu, ω, m, param)
@@ -30,7 +30,27 @@ function imagpart_D_normal_q0(T, mu, ω, m, param)
     #     negative_term = (ω - 2mu)^2 * sqrt(1 - 4 * m^2 / (ω - 2mu)^2)
     # end
 
-    return factor * (1 - 2 * numberF(T, 0.0, ω / 2)) * (positive_term) #+ negative_term)
+    return factor * (1 - 2 * FD_dist(T, 0.0, ω / 2)) * (positive_term) #+ negative_term)
+end
+
+function imagpart_D_normal0(T, mu, ω, m, param)
+    imagpart = imagpart_D_normal_q0(T, mu, ω, m, param)
+
+    vaccum_term = imagpart_D_normal_q0(0.0, 0.0, ω, m, param)
+    if (ω + 2 * mu)^2 > 4 * (param.Λ^2 + m^2)
+        return imagpart - vaccum_term
+    else
+        return imagpart
+    end
+end
+
+function realpart_D_normal0(T, mu, ω, m, param)
+    impart(x) = imagpart_D_normal0(T, mu, x, m, param)
+
+    cutoff = 2.0
+    repart_dependent = realpart_kramers_kronig_1(impart, ω, -cutoff, cutoff)
+
+    return Π0_D(T, mu, m, param) - repart_dependent
 end
 
 
@@ -74,11 +94,14 @@ end
 
 function Π0_D(T, mu, m, param)
     factor = (3 - 1) * 2 / (2 * π^2)
-    function integrand_pi0(ep)
-        return sqrt(ep^2 - m^2) * ep * (((1 - 2 * numberF(T, -mu, ep)) * PrincipalValue(ep + mu)) + (1 - 2 * numberF(T, mu, ep)) * PrincipalValue(ep - mu))
+    function integrand_pi0_vacuum(ep)
+        return sqrt(ep^2 - m^2) * ep * (PrincipalValue(ep + mu) + PrincipalValue(ep - mu))
+    end
+    function integrand_pi0_medium(ep)
+        return sqrt(ep^2 - m^2) * ep * (((-2 * FD_dist(T, -mu, ep)) * PrincipalValue(ep + mu)) + (-2 * FD_dist(T, mu, ep)) * PrincipalValue(ep - mu))
     end
 
-    return 1 / (2 * param.GD) - factor * integrate(integrand_pi0, m, sqrt(param.Λ^2 + m^2))
+    return 1 / (2 * param.GD) - factor * integrate(integrand_pi0_vacuum, m, sqrt(param.Λ^2 + m^2)) - factor * integrate(integrand_pi0_medium, m, 2.0)
 end
 
 function realpart_D_normal(T, mu, ω, q, m, param)
@@ -100,10 +123,10 @@ end
 
 function Πq0_D_analytic(T, mu, ω, m, param)
     if imag(ω) == 0
-        return realpart_D_normal(T, mu, real(ω), 0.0, m, param) - 1im * imagpart_D_normal_q0(T, mu, real(ω), m, param)
+        return realpart_D_normal0(T, mu, real(ω), m, param) - 1im * imagpart_D_normal0(T, mu, real(ω), m, param)
     end
-    integrand(ep) = 4 * sqrt(ep^2 - m^2) * ep * ((2 * numberF(T, -mu, ep) - 1) / (ω + 2 * mu + 2 * ep) + (1 - 2 * numberF(T, mu, ep)) / (ω + 2 * mu - 2 * ep)) / π^2
-    imagpart = (imag(ω) >= 0.0) ? 0.0 : 1im * (1 - 2 * numberF(T, 0.0, ω / 2)) * (ω + 2 * mu)^2 * sqrt(1 - 4 * m^2 / (ω + 2 * mu)^2) / (2 * π)
+    integrand(ep) = 4 * sqrt(ep^2 - m^2) * ep * ((2 * FD_dist(T, -mu, ep) - 1) / (ω + 2 * mu + 2 * ep) + (1 - 2 * FD_dist(T, mu, ep)) / (ω + 2 * mu - 2 * ep)) / π^2
+    imagpart = (imag(ω) >= 0.0) ? 0.0 : 1im * (1 - 2 * FD_dist(T, 0.0, ω / 2)) * (ω + 2 * mu)^2 * sqrt(1 - 4 * m^2 / (ω + 2 * mu)^2) / (2 * π)
     return 1 / (2 * param.GD) + integrate(integrand, m, sqrt(param.Λ^2 + m^2)) - 2imagpart
 end
 
@@ -111,8 +134,8 @@ function Πq_D_analytic(T, mu, ω, m, param)
     if imag(ω) >= 0
         return realpart_D_normal(T, mu, real(ω), 0.0, m, param) - 1im * imagpart_D_normal_q0(T, mu, real(ω), m, param)
     end
-    integrand(ep) = 4 * sqrt(ep^2 - m^2) * ep * ((2 * numberF(T, -mu, ep) - 1) / (ω + 2 * mu + 2 * ep) + (1 - 2 * numberF(T, mu, ep)) / (ω + 2 * mu - 2 * ep)) / π^2
-    imagpart = (imag(ω) >= 0.0) ? 0.0 : 1im * (1 - 2 * numberF(T, 0.0, ω / 2)) * (ω + 2 * mu)^2 * sqrt(1 - 4 * m^2 / (ω + 2 * mu)^2) / (2 * π)
+    integrand(ep) = 4 * sqrt(ep^2 - m^2) * ep * ((2 * FD_dist(T, -mu, ep) - 1) / (ω + 2 * mu + 2 * ep) + (1 - 2 * FD_dist(T, mu, ep)) / (ω + 2 * mu - 2 * ep)) / π^2
+    imagpart = (imag(ω) >= 0.0) ? 0.0 : 1im * (1 - 2 * FD_dist(T, 0.0, ω / 2)) * (ω + 2 * mu)^2 * sqrt(1 - 4 * m^2 / (ω + 2 * mu)^2) / (2 * π)
     return 1 / (2 * param.GD) + integrate(integrand, m, sqrt(param.Λ^2 + m^2)) - 2imagpart
 end
 
@@ -122,6 +145,13 @@ function phase_shift_D_normal(T, mu, ω, q, param)
 
     impart = imagpart_D_normal(T, mus, ω, q, m, param)
     repart = realpart_D_normal(T, mus, ω, q, m, param)
+
+    return atan(impart, repart)
+end
+function phase_shift_D_normal(T, mu, ω, q, m, param)
+
+    impart = imagpart_D_normal(T, mu, ω, q, m, param)
+    repart = realpart_D_normal(T, mu, ω, q, m, param)
 
     return atan(impart, repart)
 end
@@ -176,5 +206,5 @@ function propagator_D_normal(T, mu, ω, q, param)
 end
 
 function wave_function_renormalization_diquark(T, mu, q, m, ed, param, tol=1e-6)
-    return tol / abs(realpart_D_normal(T, mu, ed + tol, q, m, param) - realpart_D_normal(T, mu, ed, q, m, param)) 
+    return tol / abs(realpart_D_normal(T, mu, ed + tol, q, m, param) - realpart_D_normal(T, mu, ed, q, m, param))
 end

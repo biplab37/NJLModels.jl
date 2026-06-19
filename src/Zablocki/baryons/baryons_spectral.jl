@@ -4,7 +4,7 @@ function imagpart_baryon_q0_spectral(T, mu, ω, mq, param)
     spec1(x) = spectral_function_D_normal(T, mu, ω - x, sqrt(x^2 - mq^2), param)
     spec2(x) = spectral_function_D_normal(T, mu, ω + x, sqrt(x^2 - mq^2), param)
 
-    integrand(x) = mq * sqrt(x^2 - mq^2) * ((1 - numberF(T, mu, x) + numberB(T, mu, ω - x)) * spec1(x) + (numberF(T, mu, x) + numberB(T, mu, ω + x)) * spec2(x))
+    integrand(x) = mq * sqrt(x^2 - mq^2) * ((1 - FD_dist(T, mu, x) + numberB(T, mu, ω - x)) * spec1(x) + (FD_dist(T, mu, x) + numberB(T, mu, ω + x)) * spec2(x))
 
     cutoff = sqrt(4 * param.Λ^2 + mq^2)
 
@@ -51,7 +51,7 @@ function imagpart_baryon_q0_spectral_interpolated(T, mu, ω, mq, param)
     spec1(x) = sign(ω -x) * spec_func(abs(ω - x), sqrt(x^2 - mq^2))
     spec2(x) = (ω + x >= 2.0) ? 0.0 : spec_func(ω + x, sqrt(x^2 - mq^2))
 
-    integrand(x) = (abs(ω - x)<1e-3) ? (numberF(T, mu, x) + numberB(T, mu, ω + x)) * spec2(x) : mq * sqrt(x^2 - mq^2) * ((1 - numberF(T, mu, x) + numberB(T, mu, ω - x)) * spec1(x) + (numberF(T, mu, x) + numberB(T, mu, ω + x)) * spec2(x))
+    integrand(x) = (abs(ω - x)<1e-3) ? (FD_dist(T, mu, x) + numberB(T, mu, ω + x)) * spec2(x) : mq * sqrt(x^2 - mq^2) * ((1 - FD_dist(T, mu, x) + numberB(T, mu, ω - x)) * spec1(x) + (FD_dist(T, mu, x) + numberB(T, mu, ω + x)) * spec2(x))
 
     cutoff = sqrt(4 * param.Λ^2 + mq^2)
 
@@ -59,7 +59,7 @@ function imagpart_baryon_q0_spectral_interpolated(T, mu, ω, mq, param)
 end
 
 function realpart_omega0(T, mu, mq, param)
-    integrand(ep, nu) = (nu==0) ? 0.0 : mq*sqrt(ep^2 - mq^2)*spectral_function_D_normal(T, mu, nu, sqrt(ep^2 - mq^2), param) * ((1 - numberF(T, mu, ep) + numberB(T, mu, nu))*PrincipalValue(nu + ep) + (numberF(T, mu, ep) + numberB(T, mu, nu))*PrincipalValue(nu - ep))/π^2
+    integrand(ep, nu) = (nu==0) ? 0.0 : mq*sqrt(ep^2 - mq^2)*spectral_function_D_normal(T, mu, nu, sqrt(ep^2 - mq^2), param) * ((1 - FD_dist(T, mu, ep) + numberB(T, mu, nu))*PrincipalValue(nu + ep) + (FD_dist(T, mu, ep) + numberB(T, mu, nu))*PrincipalValue(nu - ep))/π^2
     cutoff_nu = 2 * sqrt(param.Λ^2 + mq^2)
     return integrate(x->integrand(x...), [mq, -cutoff_nu], [sqrt(4 * param.Λ^2 + mq^2), cutoff_nu])
 end
@@ -74,7 +74,7 @@ end
 
 function realpart_omega0_interpolated(T, mu, mq, param)
     spectral_func = spectral_function_D_normal_interpolated(T, mu, mq, param)
-    integrand(ep, nu) = (nu==0) ? 0.0 : mq*sqrt(ep^2 - mq^2)*spectral_func(nu, sqrt(ep^2 - mq^2)) * ((1 - numberF(T, mu, ep) + numberB(T, mu, nu))*PrincipalValue(nu + ep) + (numberF(T, mu, ep) + numberB(T, mu, nu))*PrincipalValue(nu - ep))/π^2
+    integrand(ep, nu) = (nu==0) ? 0.0 : mq*sqrt(ep^2 - mq^2)*spectral_func(nu, sqrt(ep^2 - mq^2)) * ((1 - FD_dist(T, mu, ep) + numberB(T, mu, nu))*PrincipalValue(nu + ep) + (FD_dist(T, mu, ep) + numberB(T, mu, nu))*PrincipalValue(nu - ep))/π^2
     cutoff_nu = 2 * sqrt(param.Λ^2 + mq^2)
     return integrate(x->integrand(x...), [mq, 0.0], [sqrt(4 * param.Λ^2 + mq^2), cutoff_nu])
 end

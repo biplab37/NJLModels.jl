@@ -5,16 +5,18 @@
 
 This function stiches two Riemann scheet together. The physical sheet on the upeer half plane and the second sheet on the lower half.
 """
-function Π0_meson_analytic(T, mu, ω, m, NM, param::Parameters; Nc=3, Nf=2)
-    pauli(p) = 1 - numberF(T, mu, En(p, m)) - numberF(T, -mu, En(p, m))
+function Π0_meson_analytic(T, mu, ω, m, NM, param::Parameters, Phi=0.0, Phibar=0.0; Nc=3, Nf=2)
+    if imag(ω) == 0
+        return realpart_meson_q0(T, mu, ω, m, NM, param, Phi, Phibar, Nc=Nc, Nf=Nf)
+    end
+    pauli(p) = -FD_dist(T, mu, En(p, m), Phi, Phibar) - FD_dist(T, -mu, En(p, m), Phi, Phibar)
     ep(p) = En(p, m)
-    repart = 1 / (2 * param.Gs) - 2*Nc * Nf * (integrate(p -> (1 - m^2 / ep(p)^2)^(NM - 0.5) * p^2 * pauli(p) * (1 / (ep(p) + ω / 2) + 1 / (ep(p) - ω / 2)), 0, param.Λ)) / (4 * π^2)
+    repart_vacuum = 1 / (2 * param.Gs) - 2 * Nc * Nf * (integrate(p -> (1 - m^2 / ep(p)^2)^(NM - 0.5) * p^2 * (1 / (ep(p) + ω / 2) + 1 / (ep(p) - ω / 2)), 0, param.Λ)) / (4 * π^2)
+    repart_medium = -2 * Nc * Nf * (integrate(p -> (1 - m^2 / ep(p)^2)^(NM - 0.5) * p^2 * pauli(p) * (1 / (ep(p) + ω / 2) + 1 / (ep(p) - ω / 2)), 0, 2.0)) / (4 * π^2)
     if imag(ω) > 0
-        return repart
+        return repart_vacuum + repart_medium
     elseif imag(ω) < 0
-        return repart - 2im * imagpart_meson_q0_C(T, mu, ω, m, NM, Nc=Nc, Nf=Nf)
-    else
-        return realpart_meson_q0(T, mu, ω, m, NM, param, Nc=Nc, Nf=Nf)
+        return repart_vacuum + repart_medium - 2im * sum(imagpart_meson_q0_C(T, mu, ω, m, NM, Phi, Phibar, Nc=Nc, Nf=Nf))
     end
 end
 
@@ -25,7 +27,7 @@ This function calculates the mass of mesons. Note that NM = 0.5 for pion and NM=
 Returns both the mass and the widths in a vector. When there is a bound state it just returns 0.0 for
 the width.
 """
-function find_meson_mass(T, mu, NM, param::Parameters)
+function find_meson_mass(T, mu, NM, param::Parameters, Phi=0.0, Phibar=0.0)
     m, ome = massgap(T, mu, param).zero
     mu += ome
     repart(ω) = Π0_meson_analytic(T, mu, ω, m, NM, param)
@@ -42,7 +44,7 @@ function find_meson_mass(T, mu, NM, param::Parameters)
     return nlsolve(ff!, [2 * m, 0.1]).zero
 end
 
-find_pion_mass(T, mu, param) = find_meson_mass(T, mu, 0.5, param)
-find_sigma_mass(T, mu, param) = find_meson_mass(T, mu, 1.5, param)
+find_pion_mass(T, mu, param) = find_meson_mass(T, mu, 0.5, param, Phi, Phibar)
+find_sigma_mass(T, mu, param) = find_meson_mass(T, mu, 1.5, param, Phi, Phibar)
 
 export find_pion_mass, find_sigma_mass

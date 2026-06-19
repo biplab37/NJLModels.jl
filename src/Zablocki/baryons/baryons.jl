@@ -49,13 +49,21 @@ function imagpart_baryon_q(T, mu, om, q, mq, mD, param)
         return 0.0
     end
 
+    if mD > mq
+        m1 = mD
+        m2 = mq
+    else
+        m1 = mq
+        m2 = mD
+    end
+
     if s > 0
-        if (mD - mq)^2 <= s <= (mq + mD)^2
+        if (m1 - m2)^2 <= s <= (m1 + m2)^2
             return 0.0
         end
-        x1 = x_pm(abs(ω), q, mD, mq, -1)
-        x2 = x_pm(abs(ω), q, mD, mq, +1)
-        if s > (mq + mD)^2
+        x1 = x_pm(abs(ω), q, m1, m2, -1)
+        x2 = x_pm(abs(ω), q, m1, m2, +1)
+        if s > (m1 + m2)^2
             if ω >= 0
                 return factor * (term2(x2) - term2(x1))
             else
@@ -69,7 +77,7 @@ function imagpart_baryon_q(T, mu, om, q, mq, mD, param)
             end
         end
     else
-        x2 = x_pm(ω, q, mD, mq, +1)
+        x2 = x_pm(ω, q, m1, m2, +1)
         return factor * (term3(x2) + term4(x2))
     end
 end
@@ -95,13 +103,20 @@ function imagpart_baryon_q_asymmetric(T, mu, om, q, mq, mD, param)
     if abs(ω) >= cutoff || s == 0
         return 0.0
     end
+    if mD > mq
+        m1 = mD
+        m2 = mq
+    else
+        m1 = mq
+        m2 = mD
+    end
 
     if s > 0
-        if (mD - mq)^2 <= s <= (mq + mD)^2
+        if (m1 - m2)^2 <= s <= (m1 + m2)^2
             return 0.0
         end
-        x1 = x_pm(abs(ω), q, mD, mq, -1)
-        x2 = min(x_pm(abs(ω), q, mD, mq, +1), 2 * sqrt((param.Λ + q)^2 + mD^2) - abs(ω))
+        x1 = x_pm(abs(ω), q, m1, m2, -1)
+        x2 = min(x_pm(abs(ω), q, m1, m2, +1), 2 * sqrt((param.Λ + q)^2 + mD^2) - abs(ω))
         if s > (mq + mD)^2
             if ω >= 0
                 return factor * (term2(x2) - term2(x1))
@@ -116,7 +131,7 @@ function imagpart_baryon_q_asymmetric(T, mu, om, q, mq, mD, param)
             end
         end
     else
-        x2 = x_pm(ω, q, mD, mq, +1)
+        x2 = x_pm(ω, q, m1, m2, +1)
         return factor * (term3(x2) + term4(x2))
     end
 end
@@ -127,15 +142,15 @@ function imagpart_baryon_q0(T, mu, ω, mq, mD, param)
     end
     eq = 0.5 * abs((ω^2 + mq^2 - mD^2) / ω)
     eD = 0.5 * abs((ω^2 - mq^2 + mD^2) / ω)
-    if eD < 1e-5
-        @show mq, mD, ω
-    end
+    # if eD < 1e-5
+    #     @show mq, mD, ω
+    # end
     p = sqrt(abs(mq^4 + (mD^2 - ω^2)^2 - 2mq^2 * (mD^2 + ω^2))) / (2 * abs(ω))
     factor = -p * mq / (π)
-    term1 = (1 - numberF(T, mu, eq) + numberB(T, mu, eD)) / (eq + eD)
-    term2 = -(1 - numberF(T, -mu, eq) + numberB(T, -mu, eD)) / (eq + eD)
-    term3 = -(numberF(T, -mu, eq) + numberB(T, mu, eD)) * PrincipalValue(eD - eq)
-    term4 = (numberF(T, mu, eq) + numberB(T, -mu, eD)) * PrincipalValue(eD - eq)
+    term1 = (1 - FD_dist(T, mu, eq) + numberB(T, mu, eD)) / (eq + eD)
+    term2 = -(1 - FD_dist(T, -mu, eq) + numberB(T, -mu, eD)) / (eq + eD)
+    term3 = -(FD_dist(T, -mu, eq) + numberB(T, mu, eD)) * PrincipalValue(eD - eq)
+    term4 = (FD_dist(T, mu, eq) + numberB(T, -mu, eD)) * PrincipalValue(eD - eq)
     if abs(ω) > sqrt(param.Λ^2 + mq^2) + sqrt(param.Λ^2 + mD^2)
         return 0.0
     end
@@ -161,8 +176,8 @@ end
 function coupling_B(T, mu, mq, mD, param)
     pol_D(ω) = realpart_D_normal_dependent_part(T, mu, ω, 0.0, mq, param)
     der = UsefulFunctions._derivative(pol_D, mD)
-    # return 16 * mD / (mq * abs(der))
-    return 82.284
+    return 16 * mD / (mq * abs(der))
+    # return 82.284
 end
 
 function Π0_B(T, mu, mq, mD, param)
@@ -170,8 +185,8 @@ function Π0_B(T, mu, mq, mD, param)
     eq(p) = sqrt(p^2 + mq^2)
     eD(p) = sqrt(p^2 + mD^2)
 
-    integrand1(p) = p^2 * ((1 - numberF(T, mu, eq(p)) + numberB(T, mu, eD(p))) + (1 - numberF(T, -mu, eq(p)) + numberB(T, -mu, eD(p)))) / (eq(p) * eD(p) * (eq(p) + eD(p)))
-    integrand2(p) = p^2 * (-(numberF(T, -mu, eq(p)) + numberB(T, mu, eD(p))) - (numberF(T, mu, eq(p)) + numberB(T, -mu, eD(p)))) * PrincipalValue(eD(p) - eq(p)) / (eq(p) * eD(p))
+    integrand1(p) = p^2 * ((1 - FD_dist(T, mu, eq(p)) + numberB(T, mu, eD(p))) + (1 - FD_dist(T, -mu, eq(p)) + numberB(T, -mu, eD(p)))) / (eq(p) * eD(p) * (eq(p) + eD(p)))
+    integrand2(p) = p^2 * (-(FD_dist(T, -mu, eq(p)) + numberB(T, mu, eD(p))) - (FD_dist(T, mu, eq(p)) + numberB(T, -mu, eD(p)))) * PrincipalValue(eD(p) - eq(p)) / (eq(p) * eD(p))
 
     return 1 / (coupling_B(T, mu, mq, mD, param)) - factor * integrate(p -> integrand1(p) + integrand2(p), 0.0, param.Λ)
 end
@@ -180,10 +195,10 @@ function full_real_part_baryon(T, mu, ω, mq, mD, param)
     eq(p) = sqrt(p^2 + mq^2)
     eD(p) = sqrt(p^2 + mD^2)
 
-    term1(p) = (1 - numberF(T, mu, eq(p)) + numberB(T, mu, eD(p))) * PrincipalValue(ω + 3 * mu + eq(p) + eD(p))
-    term2(p) = -(1 - numberF(T, -mu, eq(p)) + numberB(T, -mu, eD(p))) * PrincipalValue(ω + 3 * mu - eq(p) - eD(p))
-    term3(p) = -(numberF(T, -mu, eq(p)) + numberB(T, mu, eD(p))) * PrincipalValue(ω + 3 * mu - eq(p) + eD(p))
-    term4(p) = (numberF(T, mu, eq(p)) + numberB(T, -mu, eD(p))) * PrincipalValue(ω + 3 * mu + eq(p) - eD(p))
+    term1(p) = (1 - FD_dist(T, mu, eq(p)) + numberB(T, mu, eD(p))) * PrincipalValue(ω + 3 * mu + eq(p) + eD(p))
+    term2(p) = -(1 - FD_dist(T, -mu, eq(p)) + numberB(T, -mu, eD(p))) * PrincipalValue(ω + 3 * mu - eq(p) - eD(p))
+    term3(p) = -(FD_dist(T, -mu, eq(p)) + numberB(T, mu, eD(p))) * PrincipalValue(ω + 3 * mu - eq(p) + eD(p))
+    term4(p) = (FD_dist(T, mu, eq(p)) + numberB(T, -mu, eD(p))) * PrincipalValue(ω + 3 * mu + eq(p) - eD(p))
 
     factor(p) = mq * p^2 / (π^2 * eq(p) * eD(p))
 
@@ -215,10 +230,10 @@ function realpart_baryon_q0(T, mu, ω, mq, mD, param)
     eq(p) = sqrt(p^2 + mq^2)
     eD(p) = sqrt(p^2 + mD^2)
 
-    term1(p) = (1 - numberF(T, mu, eq(p)) + numberB(T, mu, eD(p))) * PrincipalValue(ω + eq(p) + eD(p))
-    term2(p) = (1 - numberF(T, -mu, eq(p)) + numberB(T, -mu, eD(p))) * PrincipalValue(ω - eq(p) - eD(p))
-    term3(p) = (numberF(T, -mu, eq(p)) + numberB(T, mu, eD(p))) * PrincipalValue(ω - eq(p) + eD(p))
-    term4(p) = (numberF(T, mu, eq(p)) + numberB(T, -mu, eD(p))) * PrincipalValue(ω + eq(p) - eD(p))
+    term1(p) = (1 - FD_dist(T, mu, eq(p)) + numberB(T, mu, eD(p))) * PrincipalValue(ω + eq(p) + eD(p))
+    term2(p) = (1 - FD_dist(T, -mu, eq(p)) + numberB(T, -mu, eD(p))) * PrincipalValue(ω - eq(p) - eD(p))
+    term3(p) = (FD_dist(T, -mu, eq(p)) + numberB(T, mu, eD(p))) * PrincipalValue(ω - eq(p) + eD(p))
+    term4(p) = (FD_dist(T, mu, eq(p)) + numberB(T, -mu, eD(p))) * PrincipalValue(ω + eq(p) - eD(p))
 
     integrand(p) = p^2 * (term1(p) - term2(p) - term3(p) + term4(p)) / (eq(p) * eD(p))
 
@@ -234,6 +249,13 @@ function phase_shift_baryon_q(T, mu, ω, q, param)
     mD = mass_diquark_normal(T, mu, param)
     mus = mu + ome
 
+    impart = imagpart_baryon_q(T, mus, ω, q, mq, mD, param)
+    repart = realpart_baryon_q(T, mus, ω, q, mq, mD, param)
+
+    return atan(impart, repart)
+end
+
+function phase_shift_baryon_q(T, mus, ω, q, mq, mD, param)
     impart = imagpart_baryon_q(T, mus, ω, q, mq, mD, param)
     repart = realpart_baryon_q(T, mus, ω, q, mq, mD, param)
 
@@ -257,16 +279,30 @@ function baryon_mass(T, mu_0, param)
     # return nlsolve(ff!, [2 * (m - mu), 0.1]).zero
     # return 0.0
 end
-
+function baryon_mass(T, mu, m, param)
+    @show mD = find_mass_D(T, mu, m, param)[1]
+    rep(ω) = realpart_baryon_q(T, mu, ω, 0.0, m, mD, param)
+    # if m > mu && rep(0.0) * rep(m + mD) < 0.0
+    #     return fzero(rep, 0.4)
+    # end
+    return UsefulFunctions.bisection(rep, 0.0, m + mD)
+    # function ff!(F, x)
+    #     term = Πq0_D_analytic(T, mu, x[1] - 1im * x[2] / 2, m, param)
+    #     F[1] = real(term)
+    #     F[2] = imag(term)
+    # end
+    # return nlsolve(ff!, [2 * (m - mu), 0.1]).zero
+    # return 0.0
+end
 function realpart_baryon_q0_1(T, mu, ω, mq, mD, param)
     factor = mq / (π^2)
     eq(p) = sqrt(p^2 + mq^2)
     eD(p) = sqrt(p^2 + mD^2)
 
-    term1(p) = (1 - numberF(T, mu, eq(p)) + numberB(T, mu, eD(p))) / (ω + eq(p) + eD(p))
-    term2(p) = (1 - numberF(T, -mu, eq(p)) + numberB(T, -mu, eD(p))) / (ω - eq(p) - eD(p))
-    term3(p) = (numberF(T, -mu, eq(p)) + numberB(T, mu, eD(p))) / (ω - eq(p) + eD(p))
-    term4(p) = (numberF(T, mu, eq(p)) + numberB(T, -mu, eD(p))) / (ω + eq(p) - eD(p))
+    term1(p) = (1 - FD_dist(T, mu, eq(p)) + numberB(T, mu, eD(p))) / (ω + eq(p) + eD(p))
+    term2(p) = (1 - FD_dist(T, -mu, eq(p)) + numberB(T, -mu, eD(p))) / (ω - eq(p) - eD(p))
+    term3(p) = (FD_dist(T, -mu, eq(p)) + numberB(T, mu, eD(p))) / (ω - eq(p) + eD(p))
+    term4(p) = (FD_dist(T, mu, eq(p)) + numberB(T, -mu, eD(p))) / (ω + eq(p) - eD(p))
 
     integrand(p) = p^2 * (term1(p) - term2(p) - term3(p) + term4(p)) / (eq(p) * eD(p))
 
@@ -274,9 +310,13 @@ function realpart_baryon_q0_1(T, mu, ω, mq, mD, param)
 end
 
 function distribution_baryon_q(T, mu, q, param)
-    stat_factor(om) = numberF(T, 3mu, om) * (1 - numberF(T, 3mu, om)) + numberF(T, -3mu, om) * (1 - numberF(T, -3mu, om))
+    mq::Float64, ome::Float64 = massgap(T, mu, param).zero
+    mD::Float64 = mass_diquark_normal(T, mu, param)
+    mus::Float64 = mu + ome
 
-    integrand(om) = stat_factor(om) * phase_shift_baryon_q(T, mu, om, q, param)
+    stat_factor(om)::Float64 = FD_dist(T, 3mu, om) * (1 - FD_dist(T, 3mu, om)) + FD_dist(T, -3mu, om) * (1 - FD_dist(T, -3mu, om))
 
-    return integrate(integrand, 0.0, 2.0)
+    integrand(om)::Float64 = stat_factor(om) * phase_shift_baryon_q(T, mus, om, q, mq, mD, param)
+
+    return integrate(integrand, 0.0, 2.0)::Float64
 end

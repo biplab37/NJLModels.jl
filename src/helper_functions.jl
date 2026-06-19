@@ -28,8 +28,8 @@ a function of two variables ω and q. Also the function only returns the
 ω, q dependent part.
 """
 function realpart_kramers_kronig_q(imagpart::Function, ω, q, cutoff)
-    integrand(ν) = 2 * ν * (imagpart(ν, q) * PrincipalValue(ν^2 - ω^2) - imagpart(ν, 0.0) * PrincipalValue(ν^2)) / π
-    return integrate(integrand, 0.0, cutoff)
+    integrand(ν) = 2 * ν * (imagpart(ν, q) * PrincipalValue(ν^2 - ω^2, 1e-5) - imagpart(ν, 0.0) * PrincipalValue(ν^2, 1e-5)) / π
+    return quadgk(integrand, 0.0, cutoff, rtol=1e-3, maxevals=1e4)[1]
 end
 
 function realpart_kramers_kronig_q_1(imagpart::Function, ω, q, cutoff1, cutoff2; rtol=1e-3, maxevals=1e4, err=false)
@@ -54,3 +54,24 @@ function realpart_kramers_kronig_mod(imagpart::Function, ω, cutoff)
     integrand(ν) = 2 * ω^2 * (imagpart(ν) * PrincipalValue(ν * (ν^2 - ω^2))) / π
     return integrate(integrand, 0.0, cutoff)
 end
+
+function realpart_kramers_kronig_q(imagpart::Function, imagpart0::Function, ω, cutoff)
+    integrand(ν) = 2 * ν * (imagpart(ν) * PrincipalValue(ν^2 - ω^2) - imagpart0(ν) * PrincipalValue(ν^2)) / π
+    return integrate(integrand, 0.0, cutoff)
+end
+
+
+function FD_dist(T, mu, E, Phi, Phibar)
+    if mu < 0.0
+        return f_polyakov_C(T, -mu, E, Phibar, Phi)
+    else
+        return f_polyakov_C(T, mu, E, Phi, Phibar)
+    end
+end
+
+# function FD_dist(T, mu, E, param=ParametersRDF4())
+#     _, phi, phibar = gap_rdf(T, mu, param)
+#     return FD_dist(T, mu, E, phi, phibar)
+# end
+
+FD_dist(T, mu, E) = numberF(T, mu, E)

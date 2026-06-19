@@ -21,7 +21,7 @@ end
 function integrand_number_density(T, mu, q, mq, mD, param)
     phase_shift(x, μ) = baryon_phase_shift_interpolated(T, μ, q, mq, mD, param)(x)
 
-    integrand(x) = numberF(T, mu, x) * UsefulFunctions._derivative(μ -> phase_shift(x, μ), mu)
+    integrand(x) = FD_dist(T, mu, x) * UsefulFunctions._derivative(μ -> phase_shift(x, μ), mu)
 
     return integrand
 end

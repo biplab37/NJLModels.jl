@@ -6,12 +6,12 @@ end
 
 function integrand_m(T, μ, m, ω, param::Parameters)
     return p -> 4 * 6 * param.Gs * (p^2 / 2π^2) * m *
-                (1 - numberF(T, -μ, En(p, m) + ω) - numberF(T, μ, En(p, m) - ω)) / En(p, m)
+                (1 - FD_dist(T, -μ, En(p, m) + ω) - FD_dist(T, μ, En(p, m) - ω)) / En(p, m)
 end
 
 function integrand_μ(T, μ, m, ω, param::Parameters)
     return p -> 4 * 6 * param.Gv * (p^2 / 2π^2) *
-                (numberF(T, μ, En(p, m) - ω) - numberF(T, -μ, En(p, m) + ω))
+                (FD_dist(T, μ, En(p, m) - ω) - FD_dist(T, -μ, En(p, m) + ω))
 end
 
 function gapeqns(T, μ, param::Parameters)
@@ -81,7 +81,7 @@ function massgap(trange::AbstractRange, μrange::AbstractRange, param::Parameter
 end
 
 function massgap_m(T, mu, param::Parameters)
-    return fzero(gapeqn_m(T, mu, param), 0.3)
+    return UsefulFunctions.bisection(gapeqn_m(T, mu, param), 0.0, 0.5)
 end
 
 function dispersion(p, m, Δ, mu, ω, sign)
@@ -93,7 +93,7 @@ function integrand_μ_full(T, mu, m, ω, Δ, param::Parameters)
     Ep(p) = En(p, m)
     Epp(p) = dispersion(p, m, Δ, mu, ω, +1)
     Epm(p) = dispersion(p, m, Δ, mu, ω, -1)
-    ff(ϵ) = numberF(T, 0.0, ϵ)
+    ff(ϵ) = FD_dist(T, 0.0, ϵ)
     return p -> 4 * 2 * param.Gv * (p^2 / 2π^2) * m *
                 (-ff(Ep(p) + mus) + ff(Ep(p) - mus) -
                  (1 - 2 * ff(Epm(p))) * (Ep(p) - mus) / Epm(p) +
@@ -105,7 +105,7 @@ function integrand_m_full(T, mu, m, ω, Δ, param::Parameters)
     Ep(p) = En(p, m)
     Epp(p) = dispersion(p, m, Δ, mu, ω, +1)
     Epm(p) = dispersion(p, m, Δ, mu, ω, -1)
-    ff(ϵ) = numberF(T, 0.0, ϵ)
+    ff(ϵ) = FD_dist(T, 0.0, ϵ)
     return p -> 4 * 2 * param.Gs * (p^2 / 2π^2) * m *
                 (1 - ff(Ep(p) + mus) - ff(Ep(p) - mus) +
                  (1 - 2 * ff(Epm(p))) * (Ep(p) - mus) / Epm(p) +
@@ -117,7 +117,7 @@ function integrand_Δ_full(T, mu, m, ω, Δ, param::Parameters)
     Ep(p) = En(p, m)
     Epp(p) = dispersion(p, m, Δ, mu, ω, +1)
     Epm(p) = dispersion(p, m, Δ, mu, ω, -1)
-    ff(ϵ) = numberF(T, 0.0, ϵ)
+    ff(ϵ) = FD_dist(T, 0.0, ϵ)
     return p -> 4 * 2 * param.GD * (p^2 / 2π^2) * Δ *
                 ((1 - 2 * ff(Epm(p))) / Epm(p) + (1 - 2 * ff(Epp(p))) / Epp(p))
 end

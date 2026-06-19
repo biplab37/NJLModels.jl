@@ -17,8 +17,8 @@ function _spectral_diquark_interpolated_k(T, mu, q, m, param)
 end
 
 function _integ_s_cor(spec, T, mu, k, p0, m, param)
-    term1 = abs(p0 - En(k, m)) < 1e-7 ? 0.0 : spec(p0 - En(k, m), k) * (1 - numberF(T, mu, En(k, m)) + numberB(T, mu, p0 - En(k, m)))
-    term2 = abs(p0 + En(k, m)) < 1e-7 ? 0.0 : -spec(p0 + En(k, m), k) * (numberF(T, mu, En(k, m)) + numberB(T, mu, p0 + En(k, m)))
+    term1 = abs(p0 - En(k, m)) < 1e-7 ? 0.0 : spec(p0 - En(k, m), k) * (1 - FD_dist(T, mu, En(k, m)) + numberB(T, mu, p0 - En(k, m)))
+    term2 = abs(p0 + En(k, m)) < 1e-7 ? 0.0 : -spec(p0 + En(k, m), k) * (FD_dist(T, mu, En(k, m)) + numberB(T, mu, p0 + En(k, m)))
     return k^2 * m * (term1 + term2) / (4π^2 * En(k, m)) ## -1 factor..check calc in goodnotes
 end
 
@@ -39,7 +39,7 @@ function _get_interpolated_spectral(T, mu, m, param)
     order = (500, 100)
     lb_qp = [0.0, 0.0]
     lb_ld = [0.0, 2 * mu]
-    ub = [1.0, param.Λ]
+    ub = [1.0, 2 * param.Λ + 0.1]
 
     # Landau Damping: Maps [u, q] back to 0 < ω < q - 2μ
     interp_ld = chebinterp(order, lb_ld, ub) do x
@@ -77,8 +77,8 @@ function _get_interpolated_spectral(T, mu, m, param)
 end
 function _integ_sigma_B_00_s_cor_interp(spec, T, mu, k, nu, m, param)
     ek = En(k, m)
-    stat_factor1 = (-1 + numberF(T, mu, ek) - numberB(T, mu, nu)) / (ek + nu)
-    stat_factor2 = (-numberF(T, mu, ek) - numberB(T, mu, nu)) / (ek - nu)
+    stat_factor1 = (-1 + FD_dist(T, mu, ek) - numberB(T, mu, nu)) / (ek + nu)
+    stat_factor2 = (-FD_dist(T, mu, ek) - numberB(T, mu, nu)) / (ek - nu)
 
     return k^2 * m * spec(nu, k) * (stat_factor1 + stat_factor2) / (2π^2)
 end
@@ -97,7 +97,7 @@ function _imagpart_baryons_spectral_normal_total_q0_interp(spec, T, mu, p0, m, p
 end
 
 function _realpart_baryons_spectral_normal_q0_s_interp(spec, T, mu, p0, m, param)
-    return realpart_kramers_kronig(x -> (_imagpart_baryons_spectral_normal_total_q0_interp(spec, T, mu, x, m, param)), p0, 6 * param.Λ)
+    return realpart_kramers_kronig(x -> (_imagpart_baryons_spectral_normal_total_q0_interp(spec, T, mu, x, m, param)), p0, 3 * sqrt(param.Λ^2 + m^2))
 end
 
 function p00_baryons_interp(spec, T, mu, m, mD, param)
@@ -129,3 +129,53 @@ function _get_imag_baryon_total_q0_interp(T, mu, m, param)
 
     return x -> cor_interp(x) + bound_interp(x)
 end
+
+function _get_interpolated_imagpart_baryon_q0(spec, T, mu, m, param)
+    threshold_cor = 3m
+    cutoff_cor = 3 * sqrt(param.Λ^2 + m^2)
+
+    imag_cor = chebinterp(x -> _imagpart_baryons_spectral_normal_q0_s_cor(spec, T, mu, x, m, param), 500, threshold_cor, cutoff_cor)
+    function imag_cor_func(omega)
+        if omega < 0
+            return -imag_cor_func(-omega)
+        end
+        if threshold_cor < omega < cutoff_cor
+            return imag_cor(omega)
+        end
+        return 0.0
+    end
+    md = find_diquark_energy_q(T, mu, 0.0, m, param)
+
+    threshold_bound_1, threshold_bound_2 = m + md, abs(m - md)
+    cutoff_bound = sqrt(param.Λ^2 + m^2) + sqrt(param.Λ^2 + md^2)
+
+    imag_bound_1 = chebinterp(x -> imagpart_baryons_spectral_normal_q0_s_bound(T, mu, x, m, param), 500, threshold_bound_1, cutoff_bound)
+    imag_bound_2 = chebinterp(x -> imagpart_baryons_spectral_normal_q0_s_bound(T, mu, x, m, param), 500, 0.0, threshold_bound_2)
+
+    function imag_bound_func(omega)
+        if omega < 0
+            return -imag_bound_func(-omega)
+        end
+        if 0.0 < omega < threshold_bound_2
+            return imag_bound_2(omega)
+        end
+        if threshold_bound_1 < omega < cutoff_bound
+            return imag_bound_1(omega)
+        end
+        return 0.0
+    end
+
+    return x -> imag_cor_func(x) + imag_bound_func(x)
+end
+
+function _get_realpart_baryon_spectral(imag_part, p0, m, p00, param)
+    return p00 - realpart_kramers_kronig(imag_part, p0, 3 * sqrt(param.Λ^2 + m^2))
+end
+
+function _get_phase_shift_baryon_spectral(imag_part, p0, m, p00, param)
+    real_part = _get_realpart_baryon_spectral(imag_part, p0, m, p00, param)
+    imag_part = imag_part(p0)
+
+    return atan(imag_part, real_part)
+end
+

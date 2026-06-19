@@ -6,6 +6,9 @@ include("../custom_types.jl")
 include("custom_types_specific.jl")
 include("../helper_functions.jl")
 include("gapeqn.jl")
+include("pnjl_model.jl")
+include("rdf.jl")
+include("parameter_fitting.jl")
 include("polarization_function.jl")
 include("finite_momentum.jl")
 include("mott_momenta.jl")
@@ -20,6 +23,7 @@ include("baryons/baryons_spectral.jl")
 include("baryons/baryons_interpolated.jl")
 include("baryons/new_baryons.jl")
 include("baryons/baryon_cheb_interp.jl")
+include("baryons/finite_momentum_spectral.jl")
 
 include("refactored/imaginary_part.jl")
 include("refactored/two_quarks.jl")
@@ -27,6 +31,14 @@ include("refactored/two_quarks.jl")
 include("Wang/wang.jl")
 
 include("generalized_gap_equation.jl")
+
+include("pion.jl")
+include("diquark_pnjl.jl")
+
+include("pnjl_rdf/mesons.jl")
+include("pnjl_rdf/diquarks.jl")
+include("pnjl_rdf/baryons.jl")
+include("pnjl_rdf/baryon_spectral_pnjl.jl")
 
 ## trying interpolation again
 # include("interpolated_again/imag_real.jl")

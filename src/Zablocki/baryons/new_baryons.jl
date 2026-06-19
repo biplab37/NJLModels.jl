@@ -1,8 +1,8 @@
 # calculating baryon with full diquark spectral function. Once this works should rename the file
 
 function integ_s_cor(T, mu, k, p0, m, param)
-    term1 = abs(p0 - En(k, m)) < 1e-5 ? 0.0 : spectral_function_D_normal(T, mu, p0 - En(k, m), k, m, param) * (1 - numberF(T, mu, En(k, m)) + numberB(T, mu, p0 - En(k, m)))
-    term2 = abs(p0 + En(k, m)) < 1e-5 ? 0.0 : -spectral_function_D_normal(T, mu, p0 + En(k, m), k, m, param) * (numberF(T, mu, En(k, m)) + numberB(T, mu, p0 + En(k, m)))
+    term1 = abs(p0 - En(k, m)) < 1e-5 ? 0.0 : spectral_function_D_normal(T, mu, p0 - En(k, m), k, m, param) * (1 - FD_dist(T, mu, En(k, m)) + numberB(T, mu, p0 - En(k, m)))
+    term2 = abs(p0 + En(k, m)) < 1e-5 ? 0.0 : -spectral_function_D_normal(T, mu, p0 + En(k, m), k, m, param) * (FD_dist(T, mu, En(k, m)) + numberB(T, mu, p0 + En(k, m)))
     return k^2 * m * (term1 + term2) / (4π^2 * En(k, m)) ## -1 factor..check calc in goodnotes
 end
 
@@ -12,8 +12,8 @@ end
 
 function _integ_sigma_B_00_s_cor(T, mu, k, nu, m, param)
     ek = En(k, m)
-    stat_factor1 = (-1 + numberF(T, mu, ek) - numberB(T, mu, nu)) / (ek + nu)
-    stat_factor2 = (-numberF(T, mu, ek) - numberB(T, mu, nu)) / (ek - nu)
+    stat_factor1 = (-1 + FD_dist(T, mu, ek) - numberB(T, mu, nu)) / (ek + nu)
+    stat_factor2 = (-FD_dist(T, mu, ek) - numberB(T, mu, nu)) / (ek - nu)
 
     return k^2 * m * spectral_function_D_normal(T, mu, nu, k, m, param) * (stat_factor1 + stat_factor2) / (2π^2)
 end
@@ -37,8 +37,8 @@ function _integ_sigma_B_00_s_bound(T, mu, k, m, param)
     ek = En(k, m)
     Zk = wave_function_renormalization_diquark(T, mu, k, m, ed, param)
 
-    stat_factor1 = -(1 - numberF(T, mu, ek) + numberB(T, mu, ed)) / (ek + ed)
-    stat_factor2 = -(numberF(T, mu, ek) + numberB(T, mu, ed)) / (ek - ed)
+    stat_factor1 = -(1 - FD_dist(T, mu, ek) + numberB(T, mu, ed)) / (ek + ed)
+    stat_factor2 = -(FD_dist(T, mu, ek) + numberB(T, mu, ed)) / (ek - ed)
 
     return k^2 * m * Zk * (stat_factor1 + stat_factor2) / (8π^2 * ek)
 end
@@ -56,7 +56,7 @@ function imagpart_baryons_spectral_normal_q0_s_bound(T, mu, p0, m, param)
     Zk = wave_function_renormalization_diquark(T, mu, 0.0, m, md, param)
     ed = 0.5 * abs((p0^2 - m^2 + md^2) / p0)
 
-    return imagpart_baryon_q(T, mu, p0, 0.0, m, md, param) * Zk / (2 * ed)
+    return imagpart_baryon_q0_C_rdf(T, mu, p0, m, md, param, Phi, Phibar) * Zk / (2 * ed)
 end
 
 function imagpart_baryons_spectral_normal_total_q0(T, mu, p0, m, param)

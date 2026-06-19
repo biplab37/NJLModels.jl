@@ -31,6 +31,24 @@ Base.@kwdef struct ParametersMaslov <: Parameters
     GD::Float64 = eta_d * Gs
 end
 
+# Standard Pauli-Villars parameter set (e.g. from Klevansky Rev. Mod. Phys. 64, 649 (1992))
+Base.@kwdef struct ParametersPV <: Parameters
+    Λ::Float64 = 0.8515
+    m0::Float64 = 0.0106
+    Gs::Float64 = 7.64
+    Gv::Float64 = Gs / 2
+    eta_d::Float64 = 0.75
+    GD::Float64 = eta_d * Gs
+end
+
+Base.@kwdef struct Parameters4 <: Parameters
+    Λ::Float64 = 0.59
+    m0::Float64 = 0.0055
+    Gs::Float64 = 7.64
+    Gv::Float64 = Gs / 2
+    eta_d::Float64 = 0.75
+    GD::Float64 = 5.165
+end
 function Base.show(io::IO, ::MIME"text/plain", p::Parameters)
     return dump(p)
 end
