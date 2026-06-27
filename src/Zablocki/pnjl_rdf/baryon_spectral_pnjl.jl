@@ -1,7 +1,7 @@
 function _integ_s_cor_rdf(spec, T, mu, k, p0, m, param, Phi, Phibar)
     term1 = abs(p0 - En(k, m)) < 1e-7 ? 0.0 : spec(p0 - En(k, m), k) * (1 - f_polyakov(T, mu, En(k, m), Phi, Phibar) + numberB(T, -mu, p0 - En(k, m)))
     term2 = abs(p0 + En(k, m)) < 1e-7 ? 0.0 : -spec(p0 + En(k, m), k) * (fbar_polyakov(T, mu, En(k, m), Phi, Phibar) + numberB(T, -mu, p0 + En(k, m)))
-    return k^2 * m * (term1 + term2) / (4π^2 * En(k, m)) ## -1 factor..check calc in goodnotes
+    return k^2 * m * (term1 + term2) / (π * En(k, m)) ## -1 factor..check calc in goodnotes
 end
 
 function _imagpart_baryons_spectral_normal_q0_s_cor_rdf(spec, T, mu, p0, m, param::Parameters, Phi, Phibar; tol=1e-5, maxevals=1e7)
@@ -17,8 +17,9 @@ function _get_interpolated_spectral_rdf(T, mu, m, param, Phi, Phibar)
     # Landau Damping: Maps [u, q] back to 0 < ω < q - 2μ
     interp_ld = chebinterp(order, lb_ld, ub) do x
         u, q = x[1], x[2]
-        ω_upper = q - 2 * mu
-        return spectral_function_D_normal_rdf(T, mu, ω_upper * u, q, m, param, Phi, Phibar)
+        ω_lower, ω_upper = -q - 2 * mu, q - 2 * mu
+        ω = ω_lower + u * (ω_upper - ω_lower)
+        return spectral_function_D_normal_rdf(T, mu, ω, q, m, param, Phi, Phibar)
     end
     # Quasiparticle: Maps [t, q] back to ω_lower < ω < ω_upper
     interp_qp = chebinterp(order, lb_qp, ub) do x
@@ -29,12 +30,17 @@ function _get_interpolated_spectral_rdf(T, mu, m, param, Phi, Phibar)
         return spectral_function_D_normal_rdf(T, mu, ω, q, m, param, Phi, Phibar)
     end
 
+    interp_qp2 = chebinterp(order, lb_qp, ub) do x
+        t, q = x[1], x[2]
+        ω_lower, ω_upper = -sqrt(4 * m^2 + q^2) - 2 * mu, -sqrt(4 * param.Λ^2 + 4 * m^2 + q^2) - 2 * mu
+
+        ω = ω_lower + t * (ω_upper - ω_lower)
+        return spectral_function_D_normal_rdf(T, mu, ω, q, m, param, Phi, Phibar)
+    end
+
     function spec(ω, q)
-        if ω < 0
-            return -spec(-ω, q)
-        end
-        if q > 2 * mu && 0.0 < ω < q - 2 * mu
-            u = ω / (q - 2 * mu)
+        if q > 2 * mu && -q - 2 * mu < ω < q - 2 * mu
+            u = (ω - (-q - 2 * mu)) / (2 * q)
             return interp_ld([u, q])
         end
 
@@ -42,6 +48,12 @@ function _get_interpolated_spectral_rdf(T, mu, m, param, Phi, Phibar)
         if ω_lower_qp < ω < ω_upper_qp
             t = (ω - ω_lower_qp) / (ω_upper_qp - ω_lower_qp)
             return interp_qp([t, q])
+        end
+
+        ω_lower_qp2, ω_upper_qp2 = -sqrt(4 * m^2 + q^2) - 2 * mu, -sqrt(4 * param.Λ^2 + 4 * m^2 + q^2) - 2 * mu
+        if ω_lower_qp2 > ω > ω_upper_qp2
+            t = (ω - ω_lower_qp2) / (ω_upper_qp2 - ω_lower_qp2)
+            return interp_qp2([t, q])
         end
 
         return 0.0
@@ -54,7 +66,7 @@ function _integ_sigma_B_00_s_cor_interp_rdf(spec, T, mu, k, nu, m, param, Phi, P
     stat_factor1 = (-1 + f_polyakov(T, mu, ek, Phi, Phibar) - numberB(T, -mu, nu)) / (ek + nu)
     stat_factor2 = (-fbar_polyakov(T, mu, ek, Phi, Phibar) - numberB(T, -mu, nu)) / (ek - nu)
 
-    return k^2 * m * spec(nu, k) * (stat_factor1 + stat_factor2) / (2π^2)
+    return k^2 * m * spec(nu, k) * (stat_factor1 + stat_factor2) / (π^2)
 end
 
 function sigma_B_00_s_cor_interp_rdf(spec, T, mu, m, param, Phi, Phibar)
@@ -116,6 +128,7 @@ function imagpart_baryon_q_rdf(T, mu, ω, q, mq, mD, param, Phi, Phibar)
     if q == 0
         return imagpart_baryon_q0_C_rdf(T, mu, ω, mq, mD, param, Phi, Phibar)
     end
+    ω = ω + 3 * mu
 
     expb(eps) = exp(-(eps+2mu) / 2T)
 
@@ -152,7 +165,7 @@ function imagpart_baryon_q_rdf(T, mu, ω, q, mq, mD, param, Phi, Phibar)
         xp = x_pm(ω, q, m1, m2, +1)
         if s > (m1 + m2)^2
             if ω >= 0
-                return factor * term1(xp, xm)
+                return -factor * term1(xp, xm)
             else
                 return factor * term2(xp, xm)
             end
@@ -174,15 +187,19 @@ function wave_function_renormalization_diquark_rdf(T, mu, q, m, ed, param, Phi, 
     return tol / abs(realpart_D_normal_rdf(T, mu, ed + tol, q, m, param, Phi, Phibar) - realpart_D_normal_rdf(T, mu, ed, q, m, param, Phi, Phibar))
 end
 
+function wave_function_renormalization_diquark_q0_rdf_1(T, mu, m, ed, param, Phi, Phibar, tol=1e-6)
+    return 1/abs(UsefulFunctions._first_derivative_smooth(x -> realpart_D_normal_q0_rdf(T, mu, x, m, param, Phi, Phibar), ed, dx=tol))
+end
+
 function imagpart_baryons_spectral_normal_q0_s_bound_rdf(T, mu, p0, m, param, Phi, Phibar)
     md = find_diquark_energy_q_rdf(T, mu, 0.0, m, param, Phi, Phibar)
-    if md == 0.0
+    if md == 0.0 || abs(p0)<1e-5
         return 0.0
     end
-    Zk = wave_function_renormalization_diquark_rdf(T, mu, 0.0, m, md, param, Phi, Phibar)
+    Zk = wave_function_renormalization_diquark_q0_rdf_1(T, mu, m, md, param, Phi, Phibar)
     ed = 0.5 * abs((p0^2 - m^2 + md^2) / p0)
 
-    return imagpart_baryon_q0_C_rdf(T, mu, p0, m, md, param, Phi, Phibar) * Zk / (2 * ed)
+    return imagpart_baryon_q0_rdf(T, mu, p0, m, md, param, Phi, Phibar) * Zk * (2 * ed)
 end
 
 function _imagpart_baryons_spectral_normal_total_q0_interp_rdf(spec, T, mu, p0, m, param, Phi, Phibar)
@@ -193,7 +210,7 @@ function _realpart_baryons_spectral_normal_q0_s_interp_rdf(spec, T, mu, p0, m, p
     return realpart_kramers_kronig(x -> (_imagpart_baryons_spectral_normal_total_q0_interp_rdf(spec, T, mu, x, m, param, Phi, Phibar)), p0, 3 * sqrt(param.Λ^2 + m^2))
 end
 
-function _integ_sigma_B_00_s_bound_rdf(T, mu, k, m, param)
+function _integ_sigma_B_00_s_bound_rdf(T, mu, k, m, param, Phi, Phibar)
     ed = find_diquark_energy_q_rdf(T, mu, k, m, param, Phi, Phibar)
 
     if ed == 0.0
@@ -206,19 +223,19 @@ function _integ_sigma_B_00_s_bound_rdf(T, mu, k, m, param)
     stat_factor1 = -(1 - FD_dist(T, mu, ek) + numberB(T, mu, ed)) / (ek + ed)
     stat_factor2 = -(FD_dist(T, mu, ek) + numberB(T, mu, ed)) / (ek - ed)
 
-    return k^2 * m * Zk * (stat_factor1 + stat_factor2) / (8π^2 * ek)
+    return 2*k^2 * m * Zk * (stat_factor1 + stat_factor2) / (π^2 * ek)
 end
 
 function sigma_B_00_s_bound_rdf(T, mu, m, param, Phi, Phibar)
     cutoff = Float64(param.Λ)
-    return integrate(k -> _integ_sigma_B_00_s_bound_rdf(T, mu, k, m, param), 0.0, cutoff)
+    return integrate(k -> _integ_sigma_B_00_s_bound_rdf(T, mu, k, m, param, Phi, Phibar), 0.0, cutoff)
 end
 
 function p00_baryons_interp_rdf(spec, T, mu, m, mD, param, Phi, Phibar)
-    1 / coupling_B(T, mu, m, mD, param) - sigma_B_00_s_bound_rdf(T, mu, m, param, Phi, Phibar) - sigma_B_00_s_cor_interp_rdf(spec, T, mu, m, param, Phi, Phibar)
+    1 / coupling_B_rdf(T, mu, m, mD, param, Phi, Phibar) - sigma_B_00_s_bound_rdf(T, mu, m, param, Phi, Phibar) - sigma_B_00_s_cor_interp_rdf(spec, T, mu, m, param, Phi, Phibar)
 end
 function p00_baryons_rdf(T, mu, m, mD, param, Phi, Phibar)
-    1 / coupling_B(T, mu, m, mD, param) - sigma_B_00_s_bound_rdf(T, mu, m, param, Phi, Phibar) - sigma_B_00_s_cor_rdf(T, mu, m, param, Phi, Phibar)
+    1 / coupling_B_rdf(T, mu, m, mD, param, Phi, Phibar) - sigma_B_00_s_bound_rdf(T, mu, m, param, Phi, Phibar) - sigma_B_00_s_cor_rdf(T, mu, m, param, Phi, Phibar)
 end
 
 function _get_imag_baryon_total_q0_interp_rdf(T, mu, m, param, Phi, Phibar)
@@ -344,12 +361,41 @@ function _get_interpolated_imagpart_baryon_q_rdf(spec, T, mu, q, m, param, Phi, 
     return x -> imag_cor_func(x) + imag_bound_func(x)
 end
 
-function distribution_baryon_q_spectral_rdf(T, mu, m, q, param, Phi, Phibar)
+function _get_baryon_mass_spectral(T, mu, m, param, Phi, Phibar)
+    spec = _get_interpolated_spectral_rdf(T, mu, m, param, Phi, Phibar)
+    imag = _get_interpolated_imagpart_baryon_q0_rdf(spec, T, mu, m, param, Phi, Phibar)
+    md = find_diquark_energy_q_rdf(T, mu, 0.0, m, param, Phi, Phibar)
+    p00 = p00_baryons_interp_rdf(spec, T, mu, m, md, param, Phi, Phibar)
+    realpart(om) = _get_realpart_baryon_spectral_q(imag, imag, om, m, p00, param)
+    if realpart(0.0) * realpart(1.0) < 0.0
+        return bisection(realpart, 0.0, 1.0)
+    end
+    return 0.0
+end
 
-    spec = _get_interpolated_spectral(T, mu, mq, param)
+function show_realpart_baryon_spectral_q0(spec, imag, T, mu, m, param, Phi, Phibar)
+    md = find_diquark_energy_q_rdf(T, mu, 0.0, m, param, Phi, Phibar)
+    p00 = p00_baryons_interp_rdf(spec, T, mu, m, md, param, Phi, Phibar)
+    realpart(om) = _get_realpart_baryon_spectral_q(imag, imag, om, m, p00, param)
+    return realpart
+end
+
+function distribution_baryon_q_spectral_rdf(T, mu, mq, q, param, Phi, Phibar)
+    spec = _get_interpolated_spectral_rdf(T, mu, mq, param, Phi, Phibar)
     imag_part_q = _get_interpolated_imagpart_baryon_q_rdf(spec, T, mu, q, mq, param, Phi, Phibar)
     imagpart0 = _get_interpolated_imagpart_baryon_q0_rdf(spec, T, mu, mq, param, Phi, Phibar)
     p00 = p00_baryons_interp(spec, T, mu, mq, mD, param)
+    phase_shift(om) = _get_phase_shift_baryon_spectral_q(imag_part_q, imagpart0, om, mq, p00, param)
+    stat_factor(om)::Float64 = FD_dist(T, 3mu, om) * (1 - FD_dist(T, 3mu, om)) + FD_dist(T, -3mu, om) * (1 - FD_dist(T, -3mu, om))
+
+    integrand(om)::Float64 = stat_factor(om) * phase_shift(om)
+
+    return integrate(integrand, 0.0, 2.0)::Float64
+end
+
+function distribution_baryon_q_spectral_rdf(spec,T, mu, mq, q, p00,param, Phi, Phibar)
+    imag_part_q = _get_interpolated_imagpart_baryon_q_rdf(spec, T, mu, q, mq, param, Phi, Phibar)
+    imagpart0 = _get_interpolated_imagpart_baryon_q0_rdf(spec, T, mu, mq, param, Phi, Phibar)
     phase_shift(om) = _get_phase_shift_baryon_spectral_q(imag_part_q, imagpart0, om, mq, p00, param)
     stat_factor(om)::Float64 = FD_dist(T, 3mu, om) * (1 - FD_dist(T, 3mu, om)) + FD_dist(T, -3mu, om) * (1 - FD_dist(T, -3mu, om))
 

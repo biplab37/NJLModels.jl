@@ -56,7 +56,7 @@ function imagpart_baryons_spectral_normal_q0_s_bound(T, mu, p0, m, param)
     Zk = wave_function_renormalization_diquark(T, mu, 0.0, m, md, param)
     ed = 0.5 * abs((p0^2 - m^2 + md^2) / p0)
 
-    return imagpart_baryon_q0_C_rdf(T, mu, p0, m, md, param, Phi, Phibar) * Zk / (2 * ed)
+    return imagpart_baryon_q0(T, mu, p0, m, md, param) * Zk *(2 * ed)
 end
 
 function imagpart_baryons_spectral_normal_total_q0(T, mu, p0, m, param)

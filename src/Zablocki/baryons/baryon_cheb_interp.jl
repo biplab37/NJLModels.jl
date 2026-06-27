@@ -1,7 +1,7 @@
 ## first make the interpolated version of the spectral function of the diquark for speeding up the calculations
 
 function _get_threshold_cutoff(q, m, mu, Λ)
-    return max(0.0, sqrt(4 * m^2 + q^2) - 2 * mu), sqrt(4 * Λ^2 + 4 * m^2 + q^2) - 2 * mu
+    return  sqrt(4 * m^2 + q^2) - 2 * mu, sqrt(4 * Λ^2 + 4 * m^2 + q^2) - 2 * mu
 end
 
 function _spectral_diquark_interpolated_k(T, mu, q, m, param)

@@ -211,7 +211,7 @@ function realpart_baryon_q(T, mu, ω, q, mq, mD, param)
     impart(x, y) = imagpart_baryon_q(T, mu, x, y, mq, mD, param)
 
     cutoff = max(sqrt(q^2 + 4 * param.Λ^2 + 2(mq^2 + mD^2)), sqrt(param.Λ^2 + mq^2) + sqrt(param.Λ^2 + mD^2))
-    repart_dependent = realpart_kramers_kronig_q_1(impart, ω, q, -cutoff - 3mu, cutoff - 3mu)
+    repart_dependent = realpart_kramers_kronig_q_1(impart, ω, q, -cutoff - 3mu, cutoff )
 
     return Π0_B(T, mu, mq, mD, param) - repart_dependent
 end
@@ -258,7 +258,11 @@ end
 function phase_shift_baryon_q(T, mus, ω, q, mq, mD, param)
     impart = imagpart_baryon_q(T, mus, ω, q, mq, mD, param)
     repart = realpart_baryon_q(T, mus, ω, q, mq, mD, param)
-
+    if ω-3mus<0
+        if abs(impart) <= 1e-4 && repart < 0.0
+            return -π
+        end
+    end
     return atan(impart, repart)
 end
 
@@ -317,6 +321,14 @@ function distribution_baryon_q(T, mu, q, param)
     stat_factor(om)::Float64 = FD_dist(T, 3mu, om) * (1 - FD_dist(T, 3mu, om)) + FD_dist(T, -3mu, om) * (1 - FD_dist(T, -3mu, om))
 
     integrand(om)::Float64 = stat_factor(om) * phase_shift_baryon_q(T, mus, om, q, mq, mD, param)
+
+    return integrate(integrand, 0.0, 2.0)::Float64
+end
+
+function distribution_baryon_q(T, mu, q, mq, mD, param)
+    stat_factor(om)::Float64 = FD_dist(T, 3mu, om) * (1 - FD_dist(T, 3mu, om)) + FD_dist(T, -3mu, om) * (1 - FD_dist(T, -3mu, om))
+
+    integrand(om)::Float64 = stat_factor(om) * phase_shift_baryon_q(T, mu, om, q, mq, mD, param)
 
     return integrate(integrand, 0.0, 2.0)::Float64
 end

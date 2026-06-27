@@ -137,6 +137,13 @@ function _int_condensate_rdf_pnjl(T, mu, condensate, Phi, Phibar, param::Paramet
     return vacuum_part + medium_part
 end
 
+function integrand_μ_pnjl(T, μ, m, ω, Φ, Φbar, param::Parameters)
+    μ_star = μ + ω
+    return p -> 12 * param.Gv * (p^2 / π^2) *
+                (f_polyakov(T, μ_star, safe_En(p, m), Φ, Φbar) - fbar_polyakov(T, μ_star, safe_En(p, m), Φ, Φbar))
+end
+
+
 function _gap_equations_rdf(T, mu, param::ParametersRDF, pyp::PolyakovParameters=PolyakovParameters())
     function gap(condensate, Phi, Phibar)
         if isnan(condensate) || isnan(Phi) || isnan(Phibar) || isinf(condensate) || isinf(Phi) || isinf(Phibar)
@@ -161,8 +168,8 @@ function _gap_equations_rdf(T, mu, param::ParametersRDF, pyp::PolyakovParameters
     return x -> gap(x[1], x[2], x[3])
 end
 
-function massgap_rdf(T, μ, param::ParametersRDF, pyp::PolyakovParameters=PolyakovParameters(); initial_guess=[0.01, 0.01, 0.01])
-    return mcpsolve(_gap_equations_rdf(T, μ, param, pyp), [0.000, -1.0, -1.0], [0.04, 1.0, 1.0], initial_guess, inplace=false)
+function massgap_rdf(T, μ, param::ParametersRDF, pyp::PolyakovParameters=PolyakovParameters(); initial_guess=[0.02, 0.01, 0.01])
+    return mcpsolve(_gap_equations_rdf(T, μ, param, pyp), [-0.01, 0.0, 0.0], [0.02818, 1.0, 1.0], initial_guess, inplace=false)
 end
 
 function massgap_rdf(trange::AbstractVector, μ, param::ParametersRDF, pyp::PolyakovParameters=PolyakovParameters(); initial_guess=[0.03, 0.01, 0.1])
@@ -180,7 +187,7 @@ function massgap_rdf(trange::AbstractVector, μ, param::ParametersRDF, pyp::Poly
     return result_m, result_Φ, result_Φbar
 end
 
-function massgap_rdf(t, μrange::AbstractVector, param::ParametersRDF, pyp::PolyakovParameters=PolyakovParameters(); lower=[0.0, -1.0, -1.0], upper=[0.029, 1.0, 1.0], initial_guess=[0.02, 0.01, 0.01])
+function massgap_rdf(t, μrange::AbstractVector, param::ParametersRDF, pyp::PolyakovParameters=PolyakovParameters(); lower=[0.0001, 0.0, 0.0], upper=[0.029, 1.0, 1.0], initial_guess=[0.02, 0.01, 0.01])
     result_m = zeros(length(μrange))
     result_Φ = zeros(length(μrange))
     result_Φbar = zeros(length(μrange))
@@ -227,4 +234,23 @@ end
 function _get_density(T, mu, m, Phi, Phibar)
     integrand(p) = (12 / (2 * pi^2)) * p^2 * (f_polyakov(T, mu, En(p, m), Phi, Phibar) - fbar_polyakov(T, mu, En(p, m), Phi, Phibar))
     return integrate(integrand, 0.0, 2.0)
+end
+
+function U_Polyakov(T, Phi, Phibar, pyp::PolyakovParameters=PolyakovParameters(T0=0.208))
+    b2 = pyp.a0 + pyp.a1 * (pyp.T0 / T) + pyp.a2 * (pyp.T0 / T)^2 + pyp.a3 * (pyp.T0 / T)^3
+
+    return (-0.5*b2*Phi*Phibar - (pyp.b3/6)*(Phi^3 + Phibar^3) + (pyp.b4/4)*(Phi*Phibar)^2)*T^4
+end
+
+function _Omega(T, mu, con, Phi, Phibar, param::ParametersRDF, pyp::PolyakovParameters=PolyakovParameters(T0=0.208))
+    condensate_0 = _get_vacuum_condensate(param)
+    G_PS = _get_G_PS(con, condensate_0, param.a, param.D0)
+    m = param.m0 + 2 * G_PS * con
+    Omega_vacuum = -12*integrate(p->p^2*En(p, m), 0.0, param.Λ)/(2*pi^2)
+    Omega_quark = 12*integrate(p->p^2*(_log_Z_phi_minus(T, mu, En(p, m), Phi, Phibar) + _log_Z_phi_plus(T, mu, En(p, m), Phi, Phibar)), 0.0, 2.0)/(2*pi^2)
+
+    U_pol = U_Polyakov(T, Phi, Phibar, pyp)
+    L_RDF0 = param.D0*cbrt((1 + param.a) * condensate_0^2 - con^2)
+
+    return Omega_vacuum + Omega_quark + U_pol + L_RDF0 - 2*G_PS*con^2
 end

@@ -126,25 +126,25 @@ end
 
 function _log_Z_phi_plus(T, mu, E, Φ, Φbar)
     if T < 1e-6
-        return E - mu > 0 ? 0.0 : 3*(E + mu)
+        return E - mu > 0 ? 0.0 : -3*(E - mu)
     end
     x = (E - mu)/T
     if x>=0
         return T*log(1 + 3 * Φbar * exp(-x) + 3 * Φ * exp(-2 * x) + exp(-3 * x))
     else
-        return _log_Z_phi_minus(T, mu, -E, Φ, Φbar) + 3 * (E + mu) 
+        return T*(-3*x + log(1 + 3 * Φ * exp(x) + 3 * Φbar * exp(2 * x) + exp(3 * x)))
     end
 end
 
 function _log_Z_phi_minus(T, mu, E, Φ, Φbar)
     if T < 1e-6
-        return E + mu > 0 ? 0.0 : 3*(E - mu)
+        return E + mu > 0 ? 0.0 : -3*(E + mu)
     end
     x = (E + mu)/T
     if x>=0
         return T*log(1 + 3 * Φ * exp(-x) + 3 * Φbar * exp(-2 * x) + exp(-3 * x))
     else
-        return _log_Z_phi_plus(T, mu, -E, Φ, Φbar) + 3 * (E - mu)
+        return T*(-3*x + log(1 + 3 * Φbar * exp(x) + 3 * Φ * exp(2 * x) + exp(3 * x)))
     end
 end
 

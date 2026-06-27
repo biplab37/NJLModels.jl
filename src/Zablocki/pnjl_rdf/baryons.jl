@@ -1,14 +1,18 @@
 function kallen(a, b, c)
     return a^2 + b^2 + c^2 - 2 * (a * b + b * c + c * a)
 end
-function imagpart_baryon_q0_C_rdf(T, mu, z, mq, mD, param, Phi, Phibar)
+function imagpart_baryon_q0_C_rdf(T, mu, ω, mq, mD, param, Phi, Phibar)
+    z = ω + 3 * mu
+    if abs(z) < 1e-5
+        return 0.0
+    end
     func(om) = 2 * mq * sqrt(kallen(om^2, mD^2, mq^2)) * (numberB(T, -mu, (om^2 + mD^2 - mq^2) / (2 * om)) + f_polyakov(T, mu, -(om^2 - mD^2 + mq^2) / (2 * om), Phi, Phibar)) / (4π * om^2)
 
     if imag(z) != 0.0
         return func(z)
     end
 
-    if (mD - mq)^2 < z^2 < (mq + mD)^2 || z^2 > (sqrt(param.Λ^2 + mq^2) + sqrt(param.Λ^2 + mD^2))^2
+    if z==0 || (mD - mq)^2 <= z^2 <= (mq + mD)^2 || z^2 >= (sqrt(param.Λ^2 + mq^2) + sqrt(param.Λ^2 + mD^2))^2
         return 0.0
     end
 
@@ -19,6 +23,7 @@ function imagpart_baryon_q0_rdf(T, mu, ω, mq, mD, param, Phi, Phibar)
     if ω == 0
         return 0.0
     end
+    ω = ω + 3 * mu
     eq = 0.5 * abs((ω^2 + mq^2 - mD^2) / ω)
     eD = 0.5 * abs((ω^2 - mq^2 + mD^2) / ω)
     # if eD < 1e-5
@@ -55,16 +60,17 @@ function coupling_B_rdf(T, mu, mq, mD, param, Phi, Phibar)
     pol_D(ω) = realpart_D_normal_q0_rdf(T, mu, ω, mq, param, Phi, Phibar)
     der = UsefulFunctions._derivative(pol_D, mD)
     # return 16 * mD / (mq * abs(der))
-    return 72.49827907643966
+    return  72.67151584450362
 end
+
 
 function Π0_B_rdf(T, mu, mq, mD, param, Phi, Phibar)
     factor = mq / (π^2)
     eq(p) = sqrt(p^2 + mq^2)
     eD(p) = sqrt(p^2 + mD^2)
 
-    integrand1(p) = p^2 * ((1 - f_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, mu, eD(p))) + (1 - fbar_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, -mu, eD(p)))) / (eq(p) * eD(p) * (eq(p) + eD(p)))
-    integrand2(p) = p^2 * ((fbar_polyakov(T, -mu, eq(p), Phi, Phibar) + numberB(T, mu, eD(p))) + (f_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, -mu, eD(p)))) * PrincipalValue(eD(p) - eq(p)) / (eq(p) * eD(p))
+    integrand1(p) = p^2 * ((1 - f_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, mu, eD(p)))*PrincipalValue(3*mu + eq(p) + eD(p)) + (1 - fbar_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, -mu, eD(p)))*PrincipalValue(-3*mu + eq(p) + eD(p))) / (eq(p) * eD(p))
+    integrand2(p) = p^2 * ((fbar_polyakov(T, -mu, eq(p), Phi, Phibar) + numberB(T, mu, eD(p)))*PrincipalValue(3*mu - eq(p) + eD(p)) + (f_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, -mu, eD(p)))*PrincipalValue(-3*mu - eq(p) + eD(p))) / (eq(p) * eD(p))
 
     return 1 / (coupling_B_rdf(T, mu, mq, mD, param, Phi, Phibar)) - factor * integrate(p -> integrand1(p) + integrand2(p), 0.0, param.Λ)
 end
@@ -74,21 +80,22 @@ function realpart_baryon_q0_rdf(T, mu, ω, mq, mD, param, Phi, Phibar)
     eq(p) = sqrt(p^2 + mq^2)
     eD(p) = sqrt(p^2 + mD^2)
 
-    term1(p) = (1 - f_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, mu, eD(p))) * PrincipalValue(ω + eq(p) + eD(p))
-    term2(p) = -(1 - fbar_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, -mu, eD(p))) * PrincipalValue(ω - eq(p) - eD(p))
-    term3(p) = (fbar_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, mu, eD(p))) * PrincipalValue(ω - eq(p) + eD(p))
-    term4(p) = -(f_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, -mu, eD(p))) * PrincipalValue(ω + eq(p) - eD(p))
+    term1(p) = ( - f_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, mu, eD(p))) * PrincipalValue(ω + 3*mu+ eq(p) + eD(p))
+    term2(p) = -( - fbar_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, -mu, eD(p))) * PrincipalValue(ω + 3*mu - eq(p) - eD(p))
+    term3(p) = (fbar_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, mu, eD(p))) * PrincipalValue(ω + 3*mu - eq(p) + eD(p))
+    term4(p) = -(f_polyakov(T, mu, eq(p), Phi, Phibar) + numberB(T, -mu, eD(p))) * PrincipalValue(ω + 3*mu + eq(p) - eD(p))
 
+    integrand_vac(p) = p^2*(PrincipalValue(ω + 3*mu + eq(p) + eD(p)) - PrincipalValue(ω + 3*mu - eq(p) - eD(p)) )/(eq(p) * eD(p))
     integrand(p) = p^2 * (term1(p) + term2(p) + term3(p) + term4(p)) / (eq(p) * eD(p))
 
-    return 1 / coupling_B_rdf(T, mu, mq, mD, param, Phi, Phibar) - factor * integrate(integrand, 0.0, param.Λ)
+    return 1 / coupling_B_rdf(T, mu, mq, mD, param, Phi, Phibar) - factor * integrate(integrand_vac, 0.0, param.Λ) - factor * integrate(integrand, 0.0, 2.0)
 end
 
 function realpart_baryon_q_rdf(T, mu, ω, q, mq, mD, param, Phi, Phibar)
-    impart(x) = imagpart_baryon_q0_C_rdf(T, mu, x, mq, mD, param, Phi, Phibar)
+    impart(x) = imagpart_baryon_q_rdf(T, mu, x, q, mq, mD, param, Phi, Phibar)
 
     cutoff = max(sqrt(q^2 + 4 * param.Λ^2 + 2(mq^2 + mD^2)), sqrt(param.Λ^2 + mq^2) + sqrt(param.Λ^2 + mD^2))
-    repart_dependent = realpart_kramers_kronig(impart, ω, cutoff)
+    repart_dependent = realpart_kramers_kronig_1(impart, ω, -cutoff-3mu, cutoff-3mu)
 
     return Π0_B_rdf(T, mu, mq, mD, param, Phi, Phibar) - repart_dependent
 end
@@ -97,25 +104,49 @@ function Πq0_baryon_analytic_rdf(T, mu, ω, m, mD, param, Phi, Phibar)
     if imag(ω) == 0
         return realpart_baryon_q0_rdf(T, mu, real(ω), m, mD, param, Phi, Phibar) - 1im * imagpart_baryon_q0_C_rdf(T, mu, real(ω), m, mD, param, Phi, Phibar)
     end
-    repart = realpart_baryon_q_rdf(T, mu, ω, 0.0, m, mD, param, Phi, Phibar)
+    repart = realpart_baryon_q0_rdf(T, mu, ω, m, mD, param, Phi, Phibar)
     impart = (imag(ω) >= 0.0) ? 0.0 : 1im * imagpart_baryon_q0_C_rdf(T, mu, ω, m, mD, param, Phi, Phibar)
 
     return repart - 2impart
 end
 
 function find_baryon_mass_q0_rdf(T, mu, mq, mD, param, Phi, Phibar, guess=[0.98, 0.0])
-    rep(z) = realpart_baryon_q_rdf(T, mu, z, 0.0, mq, mD, param, Phi, Phibar)
+    rep(z) = realpart_baryon_q0_rdf(T, mu, z, mq, mD, param, Phi, Phibar)
     if mq + mD > 3*mu && rep(0.0) * rep(mq + mD) < 0.0
-        return [bisection(rep, 0.0, (mq + mD)) - 3mu, 0.0]
+        return [bisection(rep, 0.0, (mq + mD)), 0.0]
     end
     function ff!(F, x)
         term = Πq0_baryon_analytic_rdf(T, mu, x[1] - 1im * x[2] / 2, mq, mD, param, Phi, Phibar)
         F[1] = real(term)
         F[2] = imag(term)
     end
-    return mcpsolve(ff!, [0.0, 0.0], [1.0, 1.0], guess).zero - [3mu, 0.0]
+    return mcpsolve(ff!, [0.0, 0.0], [2.0, 2.0], guess).zero
+    # return [0.0, 0.0]
 
 end
+
+function phase_shift_baryon_q_rdf(T, mus, ω, q, mq, mD, param, Phi, Phibar)
+    impart = imagpart_baryon_q_rdf(T, mus, ω, q, mq, mD, param, Phi, Phibar)
+    repart = realpart_baryon_q_rdf(T, mus, ω, q, mq, mD, param, Phi, Phibar)
+
+    if abs(impart) <= 1e-4 && repart < 0.0
+        if ω<-3mus
+            return -π
+        else
+            return π
+        end
+    end
+    return atan(impart, repart)
+end
+
+function distribution_baryon_q_rdf(T, mu, q, mq, mD, param, Phi, Phibar)
+    stat_factor(om)::Float64 = FD_dist(T, 3mu, om) * (1 - FD_dist(T, 3mu, om)) + FD_dist(T, -3mu, om) * (1 - FD_dist(T, -3mu, om))
+
+    integrand(om)::Float64 = stat_factor(om) * phase_shift_baryon_q_rdf(T, mu, om, q, mq, mD, param, Phi, Phibar)
+    # return phase_shift_baryon_q_rdf(T, mu, 3*mu, q, mq, mD, param, Phi, Phibar) + phase_shift_baryon_q_rdf(T, mu, -3*mu, q, mq, mD, param, Phi, Phibar) 
+    return integrate(integrand, 3mu-0.1, 3mu+0.1)::Float64
+end
+
 # function _integ_s_cor(spec, T, mu, k, p0, m, param, Phi, Phibar)
 #     term1 = abs(p0 - En(k, m)) < 1e-7 ? 0.0 : spec(p0 - En(k, m), k) * (1 - FD_dist(T, mu, En(k, m), Phi, Phibar) + numberB(T, mu, p0 - En(k, m)))
 #     term2 = abs(p0 + En(k, m)) < 1e-7 ? 0.0 : -spec(p0 + En(k, m), k) * (FD_dist(T, mu, En(k, m), Phi, Phibar) + numberB(T, mu, p0 + En(k, m)))
