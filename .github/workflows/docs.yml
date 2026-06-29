@@ -1,0 +1,20 @@
+name: Docs
+
+on: workflow_dispatch
+
+jobs:
+  Documenter:
+    permissions:
+      contents: write
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/julia-buildpkg@v1
+      - name: Build and deploy
+        uses: julia-actions/julia-docdeploy@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
