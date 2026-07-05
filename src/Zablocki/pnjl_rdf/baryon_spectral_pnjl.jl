@@ -183,7 +183,7 @@ function imagpart_baryon_q_rdf(T, mu, ω, q, mq, mD, param, Phi, Phibar)
     end
 end
 
-function wave_function_renormalization_diquark_rdf(T, mu, q, m, ed, param, Phi, Phibar, tol=1e-6)
+function wave_function_renormalization_diquark_rdf_1(T, mu, q, m, ed, param, Phi, Phibar, tol=1e-6)
     return tol / abs(realpart_D_normal_rdf(T, mu, ed + tol, q, m, param, Phi, Phibar) - realpart_D_normal_rdf(T, mu, ed, q, m, param, Phi, Phibar))
 end
 

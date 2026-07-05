@@ -19,7 +19,15 @@ using NJLModels
 
 
 ## Indices
+```@meta
+CurrentModule = NJLModels
+```
 
-```@contents
-Pages = ["indices.md"]
+# Functions and types
+
+```@index
+```
+
+```@autodocs
+Modules = [NJLModels]
 ```

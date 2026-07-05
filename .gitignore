@@ -4,3 +4,5 @@ rough/
 Plots/
 quarto_notebooks/
 *.code-workspace
+docs/build/
+docs/node_modules/

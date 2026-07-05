@@ -151,7 +151,7 @@ function _has_diquark_bound_state(T, mu, q, m, param, Phi, Phibar)
     return _has_bound_state(rep, 2 * sqrt(m^2 + q^2/4))
 end
 
-function wave_function_renormalization_diquark(T, mu, m, ed, param, Phi, Phibar, tol=1e-6)
+function wave_function_renormalization_diquark_1(T, mu, m, ed, param, Phi, Phibar, tol=1e-6)
     return tol / abs(realpart_D_normal_q0(T, mu, ed + tol, m, param, Phi, Phibar) - realpart_D_normal_q0(T, mu, ed, m, param, Phi, Phibar))
 end
 
