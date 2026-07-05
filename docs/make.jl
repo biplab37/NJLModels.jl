@@ -11,7 +11,7 @@ makedocs(
     format = DocumenterVitepress.MarkdownVitepress(
         repo = "https://github.com/biplab37/NJLModels.jl.git",
         devbranch="main",
-        devurl="",
+        devurl = "dev",
     ),
     warnonly = [:missing_docs],
 )
