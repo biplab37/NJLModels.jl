@@ -126,25 +126,25 @@ end
 
 function _log_Z_phi_plus(T, mu, E, Φ, Φbar)
     if T < 1e-6
-        return E - mu > 0 ? 0.0 : -3*(E - mu)
+        return E - mu > 0 ? 0.0 : -3 * (E - mu)
     end
-    x = (E - mu)/T
-    if x>=0
-        return T*log(1 + 3 * Φbar * exp(-x) + 3 * Φ * exp(-2 * x) + exp(-3 * x))
+    x = (E - mu) / T
+    if x >= 0
+        return T * log(1 + 3 * Φbar * exp(-x) + 3 * Φ * exp(-2 * x) + exp(-3 * x))
     else
-        return T*(-3*x + log(1 + 3 * Φ * exp(x) + 3 * Φbar * exp(2 * x) + exp(3 * x)))
+        return T * (-3 * x + log(1 + 3 * Φ * exp(x) + 3 * Φbar * exp(2 * x) + exp(3 * x)))
     end
 end
 
 function _log_Z_phi_minus(T, mu, E, Φ, Φbar)
     if T < 1e-6
-        return E + mu > 0 ? 0.0 : -3*(E + mu)
+        return E + mu > 0 ? 0.0 : -3 * (E + mu)
     end
-    x = (E + mu)/T
-    if x>=0
-        return T*log(1 + 3 * Φ * exp(-x) + 3 * Φbar * exp(-2 * x) + exp(-3 * x))
+    x = (E + mu) / T
+    if x >= 0
+        return T * log(1 + 3 * Φ * exp(-x) + 3 * Φbar * exp(-2 * x) + exp(-3 * x))
     else
-        return T*(-3*x + log(1 + 3 * Φbar * exp(x) + 3 * Φ * exp(2 * x) + exp(3 * x)))
+        return T * (-3 * x + log(1 + 3 * Φbar * exp(x) + 3 * Φ * exp(2 * x) + exp(3 * x)))
     end
 end
 
@@ -184,7 +184,7 @@ function integrand_m_pnjl_pv(T, μ, m, ω, Φ, Φbar, param::Parameters)
                 )
 end
 
-function integrand_μ_pnjl(T, μ, m, ω, Φ, Φbar, param::Parameters)
+function integrand_μ_pnjl_1(T, μ, m, ω, Φ, Φbar, param::Parameters)
     μ_star = μ + ω
     return p -> 12 * param.Gv * (p^2 / π^2) *
                 (f_polyakov(T, μ_star, safe_En(p, m), Φ, Φbar) - fbar_polyakov(T, μ_star, safe_En(p, m), Φ, Φbar))

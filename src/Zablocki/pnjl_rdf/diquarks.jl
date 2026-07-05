@@ -181,6 +181,18 @@ function _f_sum_diquark_rdf(T, mu, m, param, Phi, Phibar)
     return _fsum
 end
 
+function _f_sum_diquark_rdf_q(T, mu, m, q, param, Phi, Phibar)
+    M = _has_diquark_bound_state_q_rdf(T, mu, q, m, param, Phi, Phibar)
+    _fsum = 0.0
+
+    if M > 0.0
+        _fsum += 2 * M * wave_function_renormalization_diquark_q0_rdf(T, mu, m, M, param, Phi, Phibar)
+    end
+
+    _fsum += integrate(o -> 2 * o * spectral_function_D_normal_q0_rdf(T, mu, o, m, param, Phi, Phibar), 0.0, max(10.0*T, 2.0))
+    return _fsum
+end
+
 function _f_sum_diquark_zeroth_rdf(T, mu, m, param, Phi, Phibar)
     M = _has_diquark_bound_state_q0_rdf(T, mu, m, param, Phi, Phibar)
     _fsum = 0.0
