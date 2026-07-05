@@ -9,9 +9,10 @@ makedocs(
         "Home"         => "index.md",
     ],
     format = DocumenterVitepress.MarkdownVitepress(
-        repo = "https://github.com/biplab37/NJLModels.jl.git",
+        repo = "https://github.com/biplab37/NJLModels.jl",
         devbranch="main",
         devurl = "dev",
+        deploy_url = "https://biplab37.github.io/NJLModels.jl/dev/",
     ),
     warnonly = [:missing_docs],
 )
