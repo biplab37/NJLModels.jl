@@ -50,7 +50,7 @@ Base.@kwdef struct Parameters4 <: Parameters
     GD::Float64 = 5.165
 end
 function Base.show(io::IO, ::MIME"text/plain", p::Parameters)
-    return dump(p)
+    return dump(io, p)
 end
 
 export Parameters

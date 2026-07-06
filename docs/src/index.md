@@ -16,18 +16,3 @@ Once installed, the package can be used as
 ```julia
 using NJLModels
 ```
-
-
-## Indices
-```@meta
-CurrentModule = NJLModels
-```
-
-# Functions and types
-
-```@index
-```
-
-```@autodocs
-Modules = [NJLModels]
-```

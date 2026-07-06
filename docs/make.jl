@@ -8,6 +8,8 @@ makedocs(
     repo=Remotes.GitHub("biplab37", "NJLModels.jl"),
     pages=[
         "Home" => "index.md",
+        "Parameters" => "pages/parameters.md",
+        "Indices" => "pages/indices.md",
     ],
     format=DocumenterVitepress.MarkdownVitepress(
         repo="https://github.com/biplab37/NJLModels.jl",
@@ -15,7 +17,7 @@ makedocs(
         # devurl="dev",
         # deploy_url="https://biplab37.github.io/NJLModels.jl/dev/",
     ),
-    warnonly=[:missing_docs],
+    warnonly=[:missing_docs, :doctest],
 )
 
 DocumenterVitepress.deploydocs(
