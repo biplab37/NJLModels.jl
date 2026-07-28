@@ -9,6 +9,7 @@ makedocs(
     pages=[
         "Home" => "index.md",
         "Parameters" => "pages/parameters.md",
+        "Massgap" => "pages/massgap.md",
         "Indices" => "pages/indices.md",
     ],
     format=DocumenterVitepress.MarkdownVitepress(

@@ -1,8 +1,4 @@
 # Parameters
-```@meta
-CurrentModule = NJLModels
-```
-
 The parameters are specified via `Parameters` abstract type. Some specific parameter sets are already predifined in the module. Some examples are given below.
 
 ## Vanilla NJL model
@@ -32,7 +28,7 @@ dump(Zablocki.PolyakovParameters())
 ```
 
 ## Parameters for NJL model with RDF and Polyakov loop
-The parameter set used for my PhD thesis,
+The parameter set used for my PhD thesis for the NJL model with relativistic density functional with coupling to the Polyakov loop,
 ```@example params
 dump(Zablocki.ParametersRDF4())
 ```
